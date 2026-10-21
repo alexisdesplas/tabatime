@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Tabata Corde</title>
+<title>Tabatime</title>
 <meta name="theme-color" content="#121417">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tabata">
+<meta name="apple-mobile-web-app-title" content="Tabatime">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -110,7 +110,7 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
 <div class="app" id="app" data-phase="prep">
   <header>
     <div class="top">
-      <h1 class="title">Tabata corde</h1>
+      <h1 class="title">Tabatime</h1>
       <button class="spec-btn" id="openSettings" type="button" aria-label="Réglages">
         <span id="spec">6 × 1:00 / 0:30</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
@@ -157,7 +157,7 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
 <script>
 (() => {
   const DEFAULTS = { rounds: 6, work: 60, rest: 30, prep: 10 };
-  const KEY = "tabata-corde-settings";
+  const KEY = "tabatime-settings";
   let cfg = { ...DEFAULTS };
   try { Object.assign(cfg, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
 

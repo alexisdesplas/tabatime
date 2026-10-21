@@ -1,4 +1,4 @@
-# Tabata Corde
+# Tabatime
 
 Timer d'intervalles pour la corde à sauter, installable sur iPhone (PWA).
 
@@ -6,7 +6,7 @@ Par défaut : 6 rounds de 1:00 de corde et 0:30 de repos, avec 10 s de préparat
 
 ## Installer sur iPhone
 
-1. Ouvrir https://alexisdesplas.github.io/tabata-corde/ dans **Safari**.
+1. Ouvrir https://alexisdesplas.github.io/tabatime/ dans **Safari**.
 2. Bouton Partager → **Sur l'écran d'accueil**.
 3. Lancer l'appli depuis l'icône : plein écran, fonctionne hors connexion.
 
