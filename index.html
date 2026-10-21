@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Tabata Corde</title>
+<meta name="theme-color" content="#121417">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tabata">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Archivo:wght@400;600;700&display=swap">
+<style>
+:root {
+  --bg: #121417;
+  --surface: #1c2025;
+  --line: #2c3239;
+  --fg: #f3f1ec;
+  --muted: #8d949c;
+  --work: #ff5a36;
+  --rest: #2fc4b2;
+  --prep: #f2c230;
+  --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow: hidden; -webkit-user-select: none; user-select: none;
+  overscroll-behavior: none;
+}
+.app {
+  height: 100%; max-width: 480px; margin: 0 auto;
+  display: grid; grid-template-rows: auto 1fr auto; gap: 16px;
+  padding-block: 20px 24px;
+  --phase: var(--prep);
+}
+.app[data-phase="work"] { --phase: var(--work); }
+.app[data-phase="rest"], .app[data-phase="done"] { --phase: var(--rest); }
+
+header { display: flex; flex-direction: column; gap: 12px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.title { font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .02em; text-transform: uppercase; margin: 0; }
+.spec-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--line); border-radius: 999px;
+  color: var(--muted); padding: 8px 12px; font: 600 .8rem/1 var(--body);
+  letter-spacing: .06em; text-transform: uppercase; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.spec-btn svg { width: 14px; height: 14px; }
+.rounds { display: grid; gap: 6px; }
+.rounds span { height: 8px; border-radius: 4px; background: var(--line); position: relative; overflow: hidden; }
+.rounds span i { position: absolute; inset: 0; width: 0; background: var(--work); }
+.rounds span.done i { width: 100%; }
+
+main { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 0; }
+.ring-wrap { position: relative; width: min(82vw, 52vh, 380px); aspect-ratio: 1; max-width: 100%; }
+.ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.track { fill: none; stroke: var(--surface); stroke-width: 7; }
+.prog { fill: none; stroke: var(--phase); stroke-width: 7; stroke-linecap: round; transition: stroke .3s; }
+.center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color .3s; }
+.time { font-family: var(--display); font-weight: 900; line-height: .9; font-size: clamp(5rem, 26vw, 9rem); font-variant-numeric: tabular-nums; }
+.sub { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.next { color: var(--muted); font-size: .85rem; text-align: center; min-height: 1.3em; }
+.next b { color: var(--fg); font-weight: 600; }
+
+footer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; }
+button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.ctl {
+  font: 600 1rem/1 var(--body); color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 14px; padding: 18px 8px; cursor: pointer;
+}
+.ctl:active { transform: scale(.97); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--phase); outline-offset: 2px; }
+#go { background: var(--phase); color: #121417; border-color: transparent; font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; transition: background .3s; }
+.ctl:disabled { opacity: .35; cursor: default; }
+.total { text-align: center; color: var(--muted); font-size: .8rem; grid-column: 1 / -1; font-variant-numeric: tabular-nums; }
+
+/* Réglages */
+dialog {
+  border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--fg);
+  width: min(420px, calc(100vw - 32px)); padding: 20px; font-family: var(--body);
+}
+dialog::backdrop { background: rgba(0,0,0,.6); }
+dialog h2 { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 16px; font-size: 1.4rem; }
+.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding-block: 10px; border-top: 1px solid var(--line); }
+.field label { font-weight: 600; }
+.field small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; margin-top: 2px; }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 1.3rem; cursor: pointer; }
+.stepper output { min-width: 56px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.dlg-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 16px; }
+.dlg-actions .primary { background: var(--work); color: #121417; border-color: transparent; }
+
+@media (prefers-reduced-motion: reduce) { .prog, .phase, #go { transition: none; } .ctl:active { transform: none; } }
+</style>
+</head>
+<body>
+<div class="app" id="app" data-phase="prep">
+  <header>
+    <div class="top">
+      <h1 class="title">Tabata corde</h1>
+      <button class="spec-btn" id="openSettings" type="button" aria-label="Réglages">
+        <span id="spec">6 × 1:00 / 0:30</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+    </div>
+    <div class="rounds" id="rounds" aria-label="Progression des rounds"></div>
+  </header>
+
+  <main>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="track" cx="50" cy="50" r="45"></circle>
+        <circle class="prog" id="prog" cx="50" cy="50" r="45"></circle>
+      </svg>
+      <div class="center">
+        <div class="phase" id="phase">Prêt</div>
+        <div class="time" id="time">0:10</div>
+        <div class="sub" id="sub">Round 1 / 6</div>
+      </div>
+    </div>
+    <div class="next" id="next"></div>
+  </main>
+
+  <footer>
+    <button class="ctl" id="reset" type="button">Reset</button>
+    <button class="ctl" id="go" type="button">Go</button>
+    <button class="ctl" id="skip" type="button">Passer</button>
+    <div class="total" id="total"></div>
+  </footer>
+</div>
+
+<dialog id="settings">
+  <h2>Réglages</h2>
+  <div class="field"><label>Rounds</label><div class="stepper" data-key="rounds" data-step="1" data-min="1" data-max="30"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field"><label>Corde<small>Durée d'effort</small></label><div class="stepper" data-key="work" data-step="5" data-min="5" data-max="600" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field"><label>Repos</label><div class="stepper" data-key="rest" data-step="5" data-min="0" data-max="600" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field"><label>Préparation<small>Avant le 1er round</small></label><div class="stepper" data-key="prep" data-step="5" data-min="0" data-max="60" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="dlg-actions">
+    <button class="ctl" type="button" id="defaults">Défaut</button>
+    <button class="ctl primary" type="button" id="saveSettings">Enregistrer</button>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  const DEFAULTS = { rounds: 6, work: 60, rest: 30, prep: 10 };
+  const KEY = "tabata-corde-settings";
+  let cfg = { ...DEFAULTS };
+  try { Object.assign(cfg, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+
+  const LABEL = { prep: "Prêt", work: "Corde", rest: "Repos", done: "Terminé" };
+  const $ = id => document.getElementById(id);
+  const app = $("app"), timeEl = $("time"), phaseEl = $("phase"), subEl = $("sub"),
+        nextEl = $("next"), totalEl = $("total"), go = $("go"), prog = $("prog"), roundsEl = $("rounds");
+  const C = 2 * Math.PI * 45;
+  prog.style.strokeDasharray = C;
+
+  const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+  let phases = [], TOTAL = 0, bars = [];
+  function build() {
+    phases = [];
+    if (cfg.prep > 0) phases.push({ type: "prep", dur: cfg.prep, round: 1 });
+    for (let r = 1; r <= cfg.rounds; r++) {
+      phases.push({ type: "work", dur: cfg.work, round: r });
+      if (r < cfg.rounds && cfg.rest > 0) phases.push({ type: "rest", dur: cfg.rest, round: r });
+    }
+    TOTAL = phases.reduce((s, p) => s + p.dur, 0);
+    roundsEl.innerHTML = "";
+    roundsEl.style.gridTemplateColumns = `repeat(${cfg.rounds}, 1fr)`;
+    for (let i = 0; i < cfg.rounds; i++) roundsEl.appendChild(Object.assign(document.createElement("span"), { innerHTML: "<i></i>" }));
+    bars = [...roundsEl.children];
+    $("spec").textContent = `${cfg.rounds} × ${fmt(cfg.work)} / ${fmt(cfg.rest)}`;
+  }
+
+  let idx = 0, remaining = 0, running = false, lastTs = 0, lastSec = null, done = false, raf = 0;
+
+  // Son
+  let ctx = null;
+  function beep(freq = 880, dur = 0.12, vol = 0.35, when = 0) {
+    if (!ctx) return;
+    const t = ctx.currentTime + when, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "square"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+  // Écran allumé
+  let lock = null;
+  async function keepAwake() {
+    try { if ("wakeLock" in navigator && !lock) { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => lock = null); } } catch (e) {}
+  }
+  function releaseAwake() { try { lock && lock.release(); } catch (e) {} lock = null; }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && running) { keepAwake(); if (ctx && ctx.state === "suspended") ctx.resume(); }
+  });
+
+  function elapsedTotal() {
+    let s = 0; for (let i = 0; i < idx; i++) s += phases[i].dur;
+    return s + (phases[idx] ? phases[idx].dur - remaining / 1000 : 0);
+  }
+
+  function render() {
+    if (done) {
+      app.dataset.phase = "done";
+      phaseEl.textContent = LABEL.done; timeEl.textContent = "0:00";
+      subEl.textContent = `${cfg.rounds} rounds bouclés`; nextEl.textContent = "Bien joué. Étire les mollets.";
+      prog.style.strokeDashoffset = 0;
+      bars.forEach(b => { b.className = "done"; b.firstChild.style.width = ""; });
+      totalEl.textContent = `Durée totale ${fmt(TOTAL)} · terminé`;
+      go.textContent = "Go"; go.disabled = true;
+      return;
+    }
+    const p = phases[idx];
+    app.dataset.phase = p.type;
+    phaseEl.textContent = LABEL[p.type];
+    timeEl.textContent = fmt(remaining / 1000);
+    subEl.textContent = p.type === "rest" ? `Après round ${p.round} / ${cfg.rounds}` : `Round ${p.round} / ${cfg.rounds}`;
+    const n = phases[idx + 1];
+    nextEl.innerHTML = n ? `Ensuite : <b>${LABEL[n.type]} ${fmt(n.dur)}</b>${n.type === "work" ? ` · round ${n.round}` : ""}` : "Dernier effort, tout donner";
+    prog.style.strokeDashoffset = C * (1 - remaining / (p.dur * 1000));
+    bars.forEach((b, i) => {
+      const r = i + 1, fill = b.firstChild;
+      const finished = phases.findIndex(q => q.type === "work" && q.round === r) < idx;
+      b.className = finished ? "done" : "";
+      fill.style.width = (!finished && p.type === "work" && p.round === r) ? (100 * (1 - remaining / (p.dur * 1000))) + "%" : "";
+    });
+    totalEl.textContent = `Durée totale ${fmt(TOTAL)} · reste ${fmt(TOTAL - elapsedTotal())}`;
+    go.textContent = running ? "Pause" : (elapsedTotal() > 0 ? "Reprendre" : "Go");
+    go.disabled = false;
+  }
+
+  function enterPhase(i) {
+    idx = i;
+    if (idx >= phases.length) { finish(); return; }
+    remaining = phases[idx].dur * 1000;
+    lastSec = null;
+    const t = phases[idx].type;
+    if (t === "work") { beep(1320, 0.45, 0.4); buzz([300]); }
+    else if (t === "rest") { beep(520, 0.6, 0.4); buzz([150, 80, 150]); }
+  }
+
+  function finish() {
+    done = true; running = false; cancelAnimationFrame(raf); releaseAwake();
+    beep(1046, 0.18, 0.4, 0); beep(1318, 0.18, 0.4, 0.22); beep(1568, 0.5, 0.4, 0.44);
+    buzz([200, 100, 200, 100, 400]);
+    render();
+  }
+
+  function tick(ts) {
+    if (!running) return;
+    let dt = ts - lastTs; lastTs = ts;
+    while (dt > 0 && !done) {
+      if (dt < remaining) { remaining -= dt; dt = 0; }
+      else { dt -= remaining; enterPhase(idx + 1); }
+    }
+    if (done) return;
+    const sec = Math.ceil(remaining / 1000);
+    if (lastSec !== null && sec !== lastSec && sec >= 1 && sec <= 3) { beep(880, 0.1, 0.3); buzz(60); }
+    lastSec = sec;
+    render();
+    raf = requestAnimationFrame(tick);
+  }
+
+  function start() {
+    if (done) return;
+    if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (ctx && ctx.state === "suspended") ctx.resume();
+    if (elapsedTotal() === 0) { beep(660, 0.08, 0.25); if (phases[0].type === "work") buzz([300]); }
+    running = true; lastTs = performance.now(); keepAwake();
+    render(); raf = requestAnimationFrame(tick);
+  }
+  function pause() { running = false; cancelAnimationFrame(raf); releaseAwake(); render(); }
+  function reset() { pause(); done = false; idx = 0; remaining = phases[0].dur * 1000; lastSec = null; render(); }
+
+  go.addEventListener("click", () => running ? pause() : start());
+  $("reset").addEventListener("click", reset);
+  $("skip").addEventListener("click", () => {
+    if (done) return;
+    enterPhase(idx + 1);
+    if (!done) { lastTs = performance.now(); render(); }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.code === "Space" && e.target === document.body) { e.preventDefault(); running ? pause() : start(); }
+  });
+
+  // Réglages
+  const dlg = $("settings");
+  let draft = {};
+  const steppers = [...dlg.querySelectorAll(".stepper")];
+  function paintDraft() {
+    steppers.forEach(s => { const k = s.dataset.key; s.querySelector("output").textContent = s.hasAttribute("data-time") ? fmt(draft[k]) : draft[k]; });
+  }
+  steppers.forEach(s => s.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    const k = s.dataset.key, step = +s.dataset.step;
+    draft[k] = Math.min(+s.dataset.max, Math.max(+s.dataset.min, draft[k] + step * +b.dataset.d));
+    paintDraft();
+  }));
+  $("openSettings").addEventListener("click", () => { if (running) pause(); draft = { ...cfg }; paintDraft(); dlg.showModal(); });
+  $("defaults").addEventListener("click", () => { draft = { ...DEFAULTS }; paintDraft(); });
+  $("saveSettings").addEventListener("click", () => {
+    cfg = { ...draft };
+    try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {}
+    dlg.close(); build(); reset();
+  });
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+  build(); reset();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>
