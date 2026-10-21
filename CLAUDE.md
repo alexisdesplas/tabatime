@@ -22,3 +22,7 @@ Timer d'intervalles pour la corde à sauter, en appli web installable (PWA) sur 
 - Tester en local : `python3 -m http.server` puis http://localhost:8000.
 - Couleurs : effort `#ff5a36`, repos `#2fc4b2`, préparation `#f2c230`, fond `#121417`. Polices : Big Shoulders Display (chiffres/titres) et Archivo (texte).
 - Interface en français.
+- Mouvement : courbes `--ease-out` / `--ease-in-out` dans `:root`, durées 120–240 ms, transform/opacité seulement. Un seul moment signature : à chaque changement de phase, `#flash` (voile couleur de phase) s'estompe en 700 ms via WAAPI. Les 3 dernières secondes font pulser les chiffres ; la fin dessine l'anneau. `prefers-reduced-motion` coupe les transforms, garde les fondus.
+- État pause : attribut `data-paused` sur `.app` (anneau et centre à 50 %, « En pause » sous l'anneau). `meta[name=theme-color]` suit la couleur de phase.
+- Steppers des réglages : un tap = un pas, maintien appuyé = répétition (pointerdown + setInterval). Le `click` ne sert qu'au clavier (`e.detail === 0`).
+- Détecteur Impeccable : un faux positif « low-contrast » persiste (il croise la couleur de texte de `#go` avec le fond de survol de `.ctl`, que `#go` ne reçoit jamais : `:not(#go)` + spécificité de l'id).
