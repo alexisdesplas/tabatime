@@ -2,7 +2,13 @@
 
 Timer d'intervalles pour la corde à sauter, installable sur iPhone (PWA).
 
-Par défaut : 6 rounds de 1:00 de corde et 0:30 de repos, avec 10 s de préparation. Tout se règle depuis le bouton en haut à droite.
+Trois modes, à choisir depuis le bouton en haut à droite :
+
+- **Tabata** : rounds d'effort chronométrés séparés par du repos. Par défaut 6 × 1:00 / 0:30.
+- **EMOM** (Every Minute On the Minute) : un intervalle fixe, tu fais tes reps puis tu récupères jusqu'au suivant. Par défaut 10 × 1:00, objectif 30 reps.
+- **Séries** : rounds × séries × reps avec repos entre les séries. La série n'est pas chronométrée : appuie sur **Fait** quand elle est finie et le repos démarre. Par défaut 4 × 3 × 10, repos 0:30.
+
+Une préparation de 10 s précède le départ dans tous les modes.
 
 ## Installer sur iPhone
 
