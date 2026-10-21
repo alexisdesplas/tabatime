@@ -27,8 +27,11 @@
   --prep: #f2c230;
   --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
   --body: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ease-in-out: cubic-bezier(.77, 0, .175, 1);
   color-scheme: dark;
 }
+.app ::selection { background: var(--phase); color: #121417; }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
@@ -47,6 +50,7 @@ body {
 }
 .app[data-phase="work"] { --phase: var(--work); }
 .app[data-phase="rest"], .app[data-phase="done"] { --phase: var(--rest); }
+#flash { position: fixed; inset: 0; background: var(--phase); opacity: 0; pointer-events: none; z-index: 1; }
 
 header { display: flex; flex-direction: column; gap: 12px; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -54,9 +58,12 @@ header { display: flex; flex-direction: column; gap: 12px; }
 .spec-btn {
   display: inline-flex; align-items: center; gap: 8px;
   background: none; border: 1px solid var(--line); border-radius: 999px;
-  color: var(--muted); padding: 8px 12px; font: 600 .8rem/1 var(--body);
-  letter-spacing: .06em; text-transform: uppercase; font-variant-numeric: tabular-nums; cursor: pointer;
+  color: var(--muted); padding: 9px 12px; font: 600 .85rem/1 var(--body);
+  font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: transform 160ms var(--ease-out), color 150ms, border-color 150ms;
 }
+.spec-btn:active { transform: scale(.96); }
+@media (hover: hover) and (pointer: fine) { .spec-btn:hover { color: var(--fg); border-color: var(--muted); } }
 .spec-btn svg { width: 14px; height: 14px; flex: none; }
 .rounds { display: grid; gap: 6px; }
 .rounds span { height: 8px; border-radius: 4px; background: var(--line); position: relative; overflow: hidden; }
@@ -67,43 +74,54 @@ main { display: flex; flex-direction: column; align-items: center; justify-conte
 .ring-wrap { position: relative; width: min(82vw, 52vh, 380px); aspect-ratio: 1; max-width: 100%; }
 .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
 .track { fill: none; stroke: var(--surface); stroke-width: 7; }
-.prog { fill: none; stroke: var(--phase); stroke-width: 7; stroke-linecap: round; transition: stroke .3s; }
-.center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-.phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color .3s; }
-.time { font-family: var(--display); font-weight: 900; line-height: .9; font-size: clamp(5rem, 26vw, 9rem); font-variant-numeric: tabular-nums; }
+.prog { fill: none; stroke: var(--phase); stroke-width: 7; stroke-linecap: round; transition: stroke 200ms var(--ease-out), opacity 200ms var(--ease-out); }
+.center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: opacity 200ms var(--ease-out); }
+.app[data-paused] .prog, .app[data-paused] .center { opacity: .5; }
+.phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color 200ms var(--ease-out); }
+.time { font-family: var(--display); font-weight: 900; line-height: .9; font-size: clamp(5rem, 26vw, 9rem); font-variant-numeric: tabular-nums; will-change: transform; }
 .sub { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; text-align: center; }
 .next { color: var(--muted); font-size: .85rem; text-align: center; min-height: 1.3em; }
 .next b { color: var(--fg); font-weight: 600; }
 
 footer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; }
-button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; touch-action: manipulation; }
 .ctl {
   font: 600 1rem/1 var(--body); color: var(--fg); background: var(--surface);
-  border: 1px solid var(--line); border-radius: 14px; padding: 18px 8px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 14px; padding: 20px 8px; cursor: pointer;
+  transition: transform 160ms var(--ease-out), background 200ms var(--ease-out), opacity 200ms var(--ease-out);
 }
 .ctl:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) { .ctl:hover:not(:disabled):not(#go) { background: #242930; } #go:hover:not(:disabled) { filter: brightness(1.08); } }
 button:focus-visible, input:focus-visible { outline: 3px solid var(--phase); outline-offset: 2px; }
-#go { background: var(--phase); color: #121417; border-color: transparent; font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; transition: background .3s; }
-.ctl:disabled { opacity: .35; cursor: default; }
+#go { background: var(--phase); color: #121417; border-color: transparent; font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; }
+.ctl:disabled { opacity: .35; cursor: default; transform: none; }
 .total { text-align: center; color: var(--muted); font-size: .8rem; grid-column: 1 / -1; font-variant-numeric: tabular-nums; }
 
 /* Réglages */
 dialog {
-  border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--fg);
+  border: 0; border-radius: 20px; background: var(--surface); color: var(--fg);
   width: min(420px, calc(100vw - 32px)); padding: 20px; font-family: var(--body);
   max-height: calc(100vh - 32px); overflow: auto;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.7);
+  opacity: 0; transform: translateY(12px) scale(.97);
+  transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out), overlay 160ms allow-discrete, display 160ms allow-discrete;
 }
-dialog::backdrop { background: rgba(0,0,0,.6); }
+dialog[open] { opacity: 1; transform: none; transition-duration: 220ms; }
+@starting-style { dialog[open] { opacity: 0; transform: translateY(12px) scale(.97); } }
+dialog::backdrop { background: rgba(0,0,0,0); transition: background 160ms var(--ease-out), overlay 160ms allow-discrete, display 160ms allow-discrete; }
+dialog[open]::backdrop { background: rgba(0,0,0,.6); transition-duration: 220ms; }
+@starting-style { dialog[open]::backdrop { background: rgba(0,0,0,0); } }
 dialog h2 { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 12px; font-size: 1.4rem; }
-.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.modes { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--bg); border-radius: 12px; padding: 4px; }
+.modes .pill { position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc((100% - 20px) / 3); border-radius: 9px; background: var(--fg); transition: transform 200ms var(--ease-out); }
 .modes button {
-  font: 700 .85rem/1 var(--body); color: var(--muted); background: var(--bg);
-  border: 1px solid var(--line); border-radius: 10px; padding: 12px 6px; cursor: pointer;
-  text-transform: uppercase; letter-spacing: .04em;
+  position: relative; z-index: 1; font: 700 .85rem/1 var(--body); color: var(--muted); background: none;
+  border: 0; border-radius: 9px; padding: 12px 6px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: .04em; transition: color 200ms var(--ease-out);
 }
-.modes button[aria-pressed="true"] { color: #121417; background: var(--fg); border-color: transparent; }
-.hint { color: var(--muted); font-size: .8rem; line-height: 1.35; margin: 10px 0 6px; min-height: 2.7em; }
-.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding-block: 10px; border-top: 1px solid var(--line); }
+.modes button[aria-pressed="true"] { color: #121417; }
+.hint { color: var(--muted); font-size: .8rem; line-height: 1.35; margin: 12px 0 4px; min-height: 2.7em; }
+.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding-block: 7px; }
 .field[data-mode] { display: none; }
 dialog[data-mode="tabata"] .field[data-mode~="tabata"],
 dialog[data-mode="emom"] .field[data-mode~="emom"],
@@ -111,16 +129,24 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
 .field label { font-weight: 600; }
 .field small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; margin-top: 2px; }
 .stepper { display: flex; align-items: center; gap: 6px; }
-.stepper button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 1.3rem; cursor: pointer; }
+.stepper button { width: 44px; height: 44px; border-radius: 11px; border: 0; background: var(--bg); color: var(--fg); font-size: 1.3rem; cursor: pointer; transition: transform 120ms var(--ease-out), background 150ms var(--ease-out); }
+.stepper button:active { transform: scale(.9); background: var(--line); }
+@media (hover: hover) and (pointer: fine) { .stepper button:hover { background: var(--line); } }
 .stepper output { min-width: 56px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
-.dlg-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 16px; }
+.dlg-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 14px; }
+.dlg-actions .ctl { padding: 16px 8px; }
 .dlg-actions .primary { background: var(--work); color: #121417; border-color: transparent; }
 
-@media (prefers-reduced-motion: reduce) { .prog, .phase, #go { transition: none; } .ctl:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .prog, .phase, #go, .ctl, .spec-btn, .stepper button, .modes .pill, .modes button { transition: none; }
+  dialog, dialog::backdrop { transition: opacity 120ms, background 120ms, overlay 120ms allow-discrete, display 120ms allow-discrete; transform: none; }
+  .ctl:active, .spec-btn:active, .stepper button:active { transform: none; }
+}
 </style>
 </head>
 <body>
 <div class="app" id="app" data-phase="prep">
+  <div id="flash" aria-hidden="true"></div>
   <header>
     <div class="top">
       <h1 class="title">Tabatime</h1>
@@ -158,6 +184,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
 <dialog id="settings" data-mode="tabata">
   <h2>Réglages</h2>
   <div class="modes" id="modes" aria-label="Mode">
+    <i class="pill" id="pill" aria-hidden="true"></i>
     <button type="button" data-mode="tabata" aria-pressed="true">Tabata</button>
     <button type="button" data-mode="emom" aria-pressed="false">EMOM</button>
     <button type="button" data-mode="series" aria-pressed="false">Séries</button>
@@ -209,9 +236,17 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
 
   const $ = id => document.getElementById(id);
   const app = $("app"), timeEl = $("time"), phaseEl = $("phase"), subEl = $("sub"),
-        nextEl = $("next"), totalEl = $("total"), go = $("go"), prog = $("prog"), roundsEl = $("rounds");
+        nextEl = $("next"), totalEl = $("total"), go = $("go"), prog = $("prog"), roundsEl = $("rounds"),
+        flashEl = $("flash"), themeMeta = document.querySelector('meta[name="theme-color"]');
   const C = 2 * Math.PI * 45;
   prog.style.strokeDasharray = C;
+  const EASE = "cubic-bezier(.23, 1, .32, 1)";
+  const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PHASE_COLOR = { prep: "#f2c230", work: "#ff5a36", rest: "#2fc4b2", done: "#2fc4b2" };
+  // Un voile de la couleur de la phase qui s'estompe : le changement se voit du coin de l'œil
+  function flash() {
+    flashEl.animate([{ opacity: .45 }, { opacity: 0 }], { duration: 700, easing: EASE });
+  }
 
   const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 
@@ -297,7 +332,8 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
   function render() {
     const m = cfg.mode;
     if (done) {
-      app.dataset.phase = "done";
+      app.dataset.phase = "done"; app.removeAttribute("data-paused");
+      themeMeta.content = PHASE_COLOR.done;
       phaseEl.textContent = "Terminé"; timeEl.textContent = "0:00";
       subEl.textContent = m === "emom" ? `${nRounds} minutes bouclées` : m === "series" ? `${nSets} séries bouclées` : `${nRounds} rounds bouclés`;
       nextEl.textContent = "Bien joué. Étire les mollets.";
@@ -309,6 +345,8 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
     }
     const p = phases[idx], n = phases[idx + 1];
     app.dataset.phase = p.type;
+    app.toggleAttribute("data-paused", started && !running);
+    themeMeta.content = PHASE_COLOR[p.type];
     phaseEl.textContent = label(p);
     timeEl.textContent = p.untimed ? String(cfg.serReps) : fmt(remaining / 1000);
 
@@ -318,19 +356,21 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
     } else if (m === "emom") {
       subEl.textContent = (cfg.emomReps > 0 ? `${cfg.emomReps} reps · ` : "") + `${p.round} / ${nRounds}`;
     } else if (m === "series") {
-      subEl.textContent = p.untimed ? `reps · Round ${p.round} / ${nRounds} · ${fmt(up / 1000)}` : `Round ${p.round} / ${nRounds}`;
+      subEl.textContent = p.untimed ? `reps · Round ${p.round} / ${nRounds}` : `Round ${p.round} / ${nRounds}`;
     } else {
       subEl.textContent = p.type === "rest" ? `Après round ${p.round} / ${nRounds}` : `Round ${p.round} / ${nRounds}`;
     }
 
     // Ce qui vient ensuite
-    if (!n) nextEl.textContent = m === "emom" ? "Dernière minute, tout donner" : m === "series" ? "Dernière série, tout donner" : "Dernier effort, tout donner";
+    if (started && !running) nextEl.textContent = "En pause";
+    else if (!n) nextEl.textContent = m === "emom" ? "Dernière minute, tout donner" : m === "series" ? "Dernière série, tout donner" : "Dernier effort, tout donner";
     else {
       const showTime = !n.untimed && !(m === "emom" && n.type === "work");
       let extra = "";
       if (m === "tabata" && n.type === "work") extra = ` · round ${n.round}`;
       if (m === "series" && n.type === "work" && n.set === 1) extra = ` · round ${n.round}`;
-      nextEl.innerHTML = `Ensuite : <b>${label(n)}${showTime ? " " + fmt(n.dur) : ""}</b>${extra}`;
+      const chrono = p.untimed ? `Chrono ${fmt(up / 1000)} · ` : "";
+      nextEl.innerHTML = `${chrono}Ensuite : <b>${label(n)}${showTime ? " " + fmt(n.dur) : ""}</b>${extra}`;
     }
 
     prog.style.strokeDashoffset = p.untimed ? 0 : C * (1 - remaining / (p.dur * 1000));
@@ -361,6 +401,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
     remaining = phases[idx].dur * 1000; up = 0;
     lastSec = null;
     const t = phases[idx].type;
+    app.dataset.phase = t; flash();
     if (t === "work") { beep(1320, 0.45, 0.4); buzz([300]); }
     else if (t === "rest") { beep(520, 0.6, 0.4); buzz([150, 80, 150]); }
   }
@@ -369,7 +410,9 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
     done = true; running = false; cancelAnimationFrame(raf); releaseAwake();
     beep(1046, 0.18, 0.4, 0); beep(1318, 0.18, 0.4, 0.22); beep(1568, 0.5, 0.4, 0.44);
     buzz([200, 100, 200, 100, 400]);
+    app.dataset.phase = "done"; flash();
     render();
+    if (!reduceMotion()) prog.animate([{ strokeDashoffset: C }, { strokeDashoffset: 0 }], { duration: 900, easing: EASE });
   }
 
   function tick(ts) {
@@ -384,7 +427,10 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
     if (done) return;
     if (!phases[idx].untimed) {
       const sec = Math.ceil(remaining / 1000);
-      if (lastSec !== null && sec !== lastSec && sec >= 1 && sec <= 3) { beep(880, 0.1, 0.3); buzz(60); }
+      if (lastSec !== null && sec !== lastSec && sec >= 1 && sec <= 3) {
+        beep(880, 0.1, 0.3); buzz(60);
+        if (!reduceMotion()) timeEl.animate([{ transform: "scale(1.06)" }, { transform: "scale(1)" }], { duration: 240, easing: EASE });
+      }
       lastSec = sec;
     }
     render();
@@ -423,20 +469,33 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
   const dlg = $("settings");
   let draft = {};
   const steppers = [...dlg.querySelectorAll(".stepper")];
-  const modeBtns = [...$("modes").querySelectorAll("button")];
+  const modeBtns = [...$("modes").querySelectorAll("button")], pill = $("pill");
   function paintDraft() {
     dlg.dataset.mode = draft.mode;
+    const mi = MODES.indexOf(draft.mode);
+    pill.style.transform = `translateX(calc(${mi * 100}% + ${mi * 6}px))`;
     modeBtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === draft.mode)));
     $("hint").textContent = HINT[draft.mode];
     steppers.forEach(s => { const k = s.dataset.key; s.querySelector("output").textContent = s.hasAttribute("data-time") ? fmt(draft[k]) : draft[k]; });
   }
   modeBtns.forEach(b => b.addEventListener("click", () => { draft.mode = b.dataset.mode; paintDraft(); }));
-  steppers.forEach(s => s.addEventListener("click", e => {
-    const b = e.target.closest("button"); if (!b) return;
+  // Steppers : un tap = un pas, maintien appuyé = défilement
+  steppers.forEach(s => {
     const k = s.dataset.key, step = +s.dataset.step;
-    draft[k] = Math.min(+s.dataset.max, Math.max(+s.dataset.min, draft[k] + step * +b.dataset.d));
-    paintDraft();
-  }));
+    const bump = d => { draft[k] = Math.min(+s.dataset.max, Math.max(+s.dataset.min, draft[k] + step * d)); paintDraft(); };
+    let hold = 0, repeat = 0;
+    const stop = () => { clearTimeout(hold); clearInterval(repeat); hold = repeat = 0; };
+    s.addEventListener("pointerdown", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      e.preventDefault(); stop();
+      const d = +b.dataset.d; bump(d);
+      hold = setTimeout(() => { repeat = setInterval(() => bump(d), 70); }, 420);
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => s.addEventListener(ev, stop));
+    s.addEventListener("click", e => { // clavier uniquement (Entrée / Espace) : detail vaut 0
+      const b = e.target.closest("button"); if (b && e.detail === 0) bump(+b.dataset.d);
+    });
+  });
   $("openSettings").addEventListener("click", () => { if (running) pause(); draft = { ...cfg }; paintDraft(); dlg.showModal(); });
   $("defaults").addEventListener("click", () => { draft = { ...DEFAULTS, mode: draft.mode }; paintDraft(); });
   $("saveSettings").addEventListener("click", () => {
