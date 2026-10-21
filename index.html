@@ -57,7 +57,7 @@ header { display: flex; flex-direction: column; gap: 12px; }
   color: var(--muted); padding: 8px 12px; font: 600 .8rem/1 var(--body);
   letter-spacing: .06em; text-transform: uppercase; font-variant-numeric: tabular-nums; cursor: pointer;
 }
-.spec-btn svg { width: 14px; height: 14px; }
+.spec-btn svg { width: 14px; height: 14px; flex: none; }
 .rounds { display: grid; gap: 6px; }
 .rounds span { height: 8px; border-radius: 4px; background: var(--line); position: relative; overflow: hidden; }
 .rounds span i { position: absolute; inset: 0; width: 0; background: var(--work); }
@@ -71,7 +71,7 @@ main { display: flex; flex-direction: column; align-items: center; justify-conte
 .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color .3s; }
 .time { font-family: var(--display); font-weight: 900; line-height: .9; font-size: clamp(5rem, 26vw, 9rem); font-variant-numeric: tabular-nums; }
-.sub { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.sub { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; text-align: center; }
 .next { color: var(--muted); font-size: .85rem; text-align: center; min-height: 1.3em; }
 .next b { color: var(--fg); font-weight: 600; }
 
@@ -91,10 +91,23 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--phase); out
 dialog {
   border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--fg);
   width: min(420px, calc(100vw - 32px)); padding: 20px; font-family: var(--body);
+  max-height: calc(100vh - 32px); overflow: auto;
 }
 dialog::backdrop { background: rgba(0,0,0,.6); }
-dialog h2 { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 16px; font-size: 1.4rem; }
+dialog h2 { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 12px; font-size: 1.4rem; }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.modes button {
+  font: 700 .85rem/1 var(--body); color: var(--muted); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 10px; padding: 12px 6px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.modes button[aria-pressed="true"] { color: #121417; background: var(--fg); border-color: transparent; }
+.hint { color: var(--muted); font-size: .8rem; line-height: 1.35; margin: 10px 0 6px; min-height: 2.7em; }
 .field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding-block: 10px; border-top: 1px solid var(--line); }
+.field[data-mode] { display: none; }
+dialog[data-mode="tabata"] .field[data-mode~="tabata"],
+dialog[data-mode="emom"] .field[data-mode~="emom"],
+dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
 .field label { font-weight: 600; }
 .field small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; margin-top: 2px; }
 .stepper { display: flex; align-items: center; gap: 6px; }
@@ -142,12 +155,33 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
   </footer>
 </div>
 
-<dialog id="settings">
+<dialog id="settings" data-mode="tabata">
   <h2>Réglages</h2>
-  <div class="field"><label>Rounds</label><div class="stepper" data-key="rounds" data-step="1" data-min="1" data-max="30"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
-  <div class="field"><label>Corde<small>Durée d'effort</small></label><div class="stepper" data-key="work" data-step="5" data-min="5" data-max="600" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
-  <div class="field"><label>Repos</label><div class="stepper" data-key="rest" data-step="5" data-min="0" data-max="600" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
-  <div class="field"><label>Préparation<small>Avant le 1er round</small></label><div class="stepper" data-key="prep" data-step="5" data-min="0" data-max="60" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="modes" id="modes" aria-label="Mode">
+    <button type="button" data-mode="tabata" aria-pressed="true">Tabata</button>
+    <button type="button" data-mode="emom" aria-pressed="false">EMOM</button>
+    <button type="button" data-mode="series" aria-pressed="false">Séries</button>
+  </div>
+  <p class="hint" id="hint"></p>
+
+  <!-- Tabata -->
+  <div class="field" data-mode="tabata"><label>Rounds</label><div class="stepper" data-key="rounds" data-step="1" data-min="1" data-max="30"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field" data-mode="tabata"><label>Corde<small>Durée d'effort</small></label><div class="stepper" data-key="work" data-step="5" data-min="5" data-max="600" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field" data-mode="tabata"><label>Repos</label><div class="stepper" data-key="rest" data-step="5" data-min="0" data-max="600" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+
+  <!-- EMOM -->
+  <div class="field" data-mode="emom"><label>Minutes<small>Nombre d'intervalles</small></label><div class="stepper" data-key="emomRounds" data-step="1" data-min="1" data-max="60"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field" data-mode="emom"><label>Intervalle<small>Durée de chaque minute</small></label><div class="stepper" data-key="emomEvery" data-step="10" data-min="20" data-max="300" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field" data-mode="emom"><label>Reps<small>Objectif par intervalle, 0 = libre</small></label><div class="stepper" data-key="emomReps" data-step="5" data-min="0" data-max="200"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+
+  <!-- Séries -->
+  <div class="field" data-mode="series"><label>Rounds</label><div class="stepper" data-key="serRounds" data-step="1" data-min="1" data-max="20"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field" data-mode="series"><label>Séries<small>Par round</small></label><div class="stepper" data-key="serSets" data-step="1" data-min="1" data-max="20"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field" data-mode="series"><label>Reps<small>Par série</small></label><div class="stepper" data-key="serReps" data-step="1" data-min="1" data-max="100"><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+  <div class="field" data-mode="series"><label>Repos<small>Entre les séries</small></label><div class="stepper" data-key="serRest" data-step="5" data-min="0" data-max="600" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
+
+  <!-- Commun -->
+  <div class="field"><label>Préparation<small>Avant le départ</small></label><div class="stepper" data-key="prep" data-step="5" data-min="0" data-max="60" data-time><button type="button" data-d="-1" aria-label="Moins">−</button><output></output><button type="button" data-d="1" aria-label="Plus">+</button></div></div>
   <div class="dlg-actions">
     <button class="ctl" type="button" id="defaults">Défaut</button>
     <button class="ctl primary" type="button" id="saveSettings">Enregistrer</button>
@@ -156,12 +190,23 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
 
 <script>
 (() => {
-  const DEFAULTS = { rounds: 6, work: 60, rest: 30, prep: 10 };
+  const DEFAULTS = {
+    mode: "tabata",
+    rounds: 6, work: 60, rest: 30, prep: 10,
+    emomRounds: 10, emomEvery: 60, emomReps: 30,
+    serRounds: 4, serSets: 3, serReps: 10, serRest: 30
+  };
+  const MODES = ["tabata", "emom", "series"];
+  const HINT = {
+    tabata: "Rounds d'effort chronométrés, séparés par du repos.",
+    emom: "Every Minute On the Minute : à chaque intervalle, fais tes reps puis récupère jusqu'au suivant.",
+    series: "Séries de reps à ton rythme : appuie sur Fait quand la série est finie, le repos démarre."
+  };
   const KEY = "tabatime-settings";
   let cfg = { ...DEFAULTS };
   try { Object.assign(cfg, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+  if (!MODES.includes(cfg.mode)) cfg.mode = "tabata";
 
-  const LABEL = { prep: "Prêt", work: "Corde", rest: "Repos", done: "Terminé" };
   const $ = id => document.getElementById(id);
   const app = $("app"), timeEl = $("time"), phaseEl = $("phase"), subEl = $("sub"),
         nextEl = $("next"), totalEl = $("total"), go = $("go"), prog = $("prog"), roundsEl = $("rounds");
@@ -170,23 +215,54 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
 
   const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 
-  let phases = [], TOTAL = 0, bars = [];
+  // phases : { type: prep|work|rest, dur (s), round, set?, untimed? }
+  let phases = [], TOTAL = 0, bars = [], nRounds = 0, workIdx = [], nSets = 0;
   function build() {
     phases = [];
+    const m = cfg.mode;
+    let spec = "";
     if (cfg.prep > 0) phases.push({ type: "prep", dur: cfg.prep, round: 1 });
-    for (let r = 1; r <= cfg.rounds; r++) {
-      phases.push({ type: "work", dur: cfg.work, round: r });
-      if (r < cfg.rounds && cfg.rest > 0) phases.push({ type: "rest", dur: cfg.rest, round: r });
+    if (m === "tabata") {
+      nRounds = cfg.rounds;
+      for (let r = 1; r <= nRounds; r++) {
+        phases.push({ type: "work", dur: cfg.work, round: r });
+        if (r < nRounds && cfg.rest > 0) phases.push({ type: "rest", dur: cfg.rest, round: r });
+      }
+      spec = `${nRounds} × ${fmt(cfg.work)} / ${fmt(cfg.rest)}`;
+    } else if (m === "emom") {
+      nRounds = cfg.emomRounds;
+      for (let r = 1; r <= nRounds; r++) phases.push({ type: "work", dur: cfg.emomEvery, round: r });
+      spec = `EMOM ${nRounds} × ${fmt(cfg.emomEvery)}`;
+    } else {
+      nRounds = cfg.serRounds;
+      for (let r = 1; r <= nRounds; r++) for (let s = 1; s <= cfg.serSets; s++) {
+        phases.push({ type: "work", dur: 0, untimed: true, round: r, set: s });
+        const last = r === nRounds && s === cfg.serSets;
+        if (!last && cfg.serRest > 0) phases.push({ type: "rest", dur: cfg.serRest, round: r, set: s });
+      }
+      spec = `${nRounds} × ${cfg.serSets} × ${cfg.serReps} / ${fmt(cfg.serRest)}`;
     }
     TOTAL = phases.reduce((s, p) => s + p.dur, 0);
+    nSets = phases.filter(p => p.untimed).length;
+    workIdx = [];
+    phases.forEach((p, i) => { if (p.type === "work") (workIdx[p.round] = workIdx[p.round] || []).push(i); });
     roundsEl.innerHTML = "";
-    roundsEl.style.gridTemplateColumns = `repeat(${cfg.rounds}, 1fr)`;
-    for (let i = 0; i < cfg.rounds; i++) roundsEl.appendChild(Object.assign(document.createElement("span"), { innerHTML: "<i></i>" }));
+    roundsEl.style.gridTemplateColumns = `repeat(${nRounds}, 1fr)`;
+    roundsEl.style.gap = nRounds > 40 ? "2px" : nRounds > 20 ? "3px" : "";
+    for (let i = 0; i < nRounds; i++) roundsEl.appendChild(Object.assign(document.createElement("span"), { innerHTML: "<i></i>" }));
     bars = [...roundsEl.children];
-    $("spec").textContent = `${cfg.rounds} × ${fmt(cfg.work)} / ${fmt(cfg.rest)}`;
+    $("spec").textContent = spec;
   }
 
-  let idx = 0, remaining = 0, running = false, lastTs = 0, lastSec = null, done = false, raf = 0;
+  function label(p) {
+    if (p.type === "prep") return "Prêt";
+    if (p.type === "rest") return "Repos";
+    if (cfg.mode === "emom") return `Minute ${p.round}`;
+    if (cfg.mode === "series") return `Série ${p.set} / ${cfg.serSets}`;
+    return "Corde";
+  }
+
+  let idx = 0, remaining = 0, up = 0, running = false, started = false, lastTs = 0, lastSec = null, done = false, raf = 0;
 
   // Son
   let ctx = null;
@@ -213,43 +289,76 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
 
   function elapsedTotal() {
     let s = 0; for (let i = 0; i < idx; i++) s += phases[i].dur;
-    return s + (phases[idx] ? phases[idx].dur - remaining / 1000 : 0);
+    const p = phases[idx];
+    return s + (p && !p.untimed ? p.dur - remaining / 1000 : 0);
   }
+  const setsDone = () => phases.slice(0, idx).filter(p => p.untimed).length;
 
   function render() {
+    const m = cfg.mode;
     if (done) {
       app.dataset.phase = "done";
-      phaseEl.textContent = LABEL.done; timeEl.textContent = "0:00";
-      subEl.textContent = `${cfg.rounds} rounds bouclés`; nextEl.textContent = "Bien joué. Étire les mollets.";
+      phaseEl.textContent = "Terminé"; timeEl.textContent = "0:00";
+      subEl.textContent = m === "emom" ? `${nRounds} minutes bouclées` : m === "series" ? `${nSets} séries bouclées` : `${nRounds} rounds bouclés`;
+      nextEl.textContent = "Bien joué. Étire les mollets.";
       prog.style.strokeDashoffset = 0;
       bars.forEach(b => { b.className = "done"; b.firstChild.style.width = ""; });
-      totalEl.textContent = `Durée totale ${fmt(TOTAL)} · terminé`;
+      totalEl.textContent = m === "series" ? `${nSets} séries · terminé` : `Durée totale ${fmt(TOTAL)} · terminé`;
       go.textContent = "Go"; go.disabled = true;
       return;
     }
-    const p = phases[idx];
+    const p = phases[idx], n = phases[idx + 1];
     app.dataset.phase = p.type;
-    phaseEl.textContent = LABEL[p.type];
-    timeEl.textContent = fmt(remaining / 1000);
-    subEl.textContent = p.type === "rest" ? `Après round ${p.round} / ${cfg.rounds}` : `Round ${p.round} / ${cfg.rounds}`;
-    const n = phases[idx + 1];
-    nextEl.innerHTML = n ? `Ensuite : <b>${LABEL[n.type]} ${fmt(n.dur)}</b>${n.type === "work" ? ` · round ${n.round}` : ""}` : "Dernier effort, tout donner";
-    prog.style.strokeDashoffset = C * (1 - remaining / (p.dur * 1000));
+    phaseEl.textContent = label(p);
+    timeEl.textContent = p.untimed ? String(cfg.serReps) : fmt(remaining / 1000);
+
+    // Ligne sous le chiffre
+    if (p.type === "prep") {
+      subEl.textContent = m === "emom" ? `${nRounds} × ${fmt(cfg.emomEvery)}` : m === "series" ? `${nRounds} rounds × ${cfg.serSets} séries` : `Round 1 / ${nRounds}`;
+    } else if (m === "emom") {
+      subEl.textContent = (cfg.emomReps > 0 ? `${cfg.emomReps} reps · ` : "") + `${p.round} / ${nRounds}`;
+    } else if (m === "series") {
+      subEl.textContent = p.untimed ? `reps · Round ${p.round} / ${nRounds} · ${fmt(up / 1000)}` : `Round ${p.round} / ${nRounds}`;
+    } else {
+      subEl.textContent = p.type === "rest" ? `Après round ${p.round} / ${nRounds}` : `Round ${p.round} / ${nRounds}`;
+    }
+
+    // Ce qui vient ensuite
+    if (!n) nextEl.textContent = m === "emom" ? "Dernière minute, tout donner" : m === "series" ? "Dernière série, tout donner" : "Dernier effort, tout donner";
+    else {
+      const showTime = !n.untimed && !(m === "emom" && n.type === "work");
+      let extra = "";
+      if (m === "tabata" && n.type === "work") extra = ` · round ${n.round}`;
+      if (m === "series" && n.type === "work" && n.set === 1) extra = ` · round ${n.round}`;
+      nextEl.innerHTML = `Ensuite : <b>${label(n)}${showTime ? " " + fmt(n.dur) : ""}</b>${extra}`;
+    }
+
+    prog.style.strokeDashoffset = p.untimed ? 0 : C * (1 - remaining / (p.dur * 1000));
+
     bars.forEach((b, i) => {
-      const r = i + 1, fill = b.firstChild;
-      const finished = phases.findIndex(q => q.type === "work" && q.round === r) < idx;
+      const r = i + 1, fill = b.firstChild, ws = workIdx[r] || [];
+      const finished = ws.length > 0 && ws[ws.length - 1] < idx;
       b.className = finished ? "done" : "";
-      fill.style.width = (!finished && p.type === "work" && p.round === r) ? (100 * (1 - remaining / (p.dur * 1000))) + "%" : "";
+      let w = "";
+      if (!finished && p.type !== "prep" && p.round === r) {
+        const doneCount = ws.filter(j => j < idx).length;
+        const cur = (p.type === "work" && !p.untimed) ? 1 - remaining / (p.dur * 1000) : 0;
+        w = (100 * (doneCount + cur) / ws.length) + "%";
+      }
+      fill.style.width = w;
     });
-    totalEl.textContent = `Durée totale ${fmt(TOTAL)} · reste ${fmt(TOTAL - elapsedTotal())}`;
-    go.textContent = running ? "Pause" : (elapsedTotal() > 0 ? "Reprendre" : "Go");
+
+    totalEl.textContent = m === "series"
+      ? `Série ${Math.min(nSets, setsDone() + (p.untimed ? 1 : 0))} / ${nSets} · repos cumulé ${fmt(TOTAL)}`
+      : `Durée totale ${fmt(TOTAL)} · reste ${fmt(TOTAL - elapsedTotal())}`;
+    go.textContent = running ? (p.untimed ? "Fait" : "Pause") : (started ? "Reprendre" : "Go");
     go.disabled = false;
   }
 
   function enterPhase(i) {
     idx = i;
     if (idx >= phases.length) { finish(); return; }
-    remaining = phases[idx].dur * 1000;
+    remaining = phases[idx].dur * 1000; up = 0;
     lastSec = null;
     const t = phases[idx].type;
     if (t === "work") { beep(1320, 0.45, 0.4); buzz([300]); }
@@ -267,13 +376,17 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
     if (!running) return;
     let dt = ts - lastTs; lastTs = ts;
     while (dt > 0 && !done) {
-      if (dt < remaining) { remaining -= dt; dt = 0; }
+      const p = phases[idx];
+      if (p.untimed) { up += dt; dt = 0; }
+      else if (dt < remaining) { remaining -= dt; dt = 0; }
       else { dt -= remaining; enterPhase(idx + 1); }
     }
     if (done) return;
-    const sec = Math.ceil(remaining / 1000);
-    if (lastSec !== null && sec !== lastSec && sec >= 1 && sec <= 3) { beep(880, 0.1, 0.3); buzz(60); }
-    lastSec = sec;
+    if (!phases[idx].untimed) {
+      const sec = Math.ceil(remaining / 1000);
+      if (lastSec !== null && sec !== lastSec && sec >= 1 && sec <= 3) { beep(880, 0.1, 0.3); buzz(60); }
+      lastSec = sec;
+    }
     render();
     raf = requestAnimationFrame(tick);
   }
@@ -282,31 +395,42 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
     if (done) return;
     if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
     if (ctx && ctx.state === "suspended") ctx.resume();
-    if (elapsedTotal() === 0) { beep(660, 0.08, 0.25); if (phases[0].type === "work") buzz([300]); }
-    running = true; lastTs = performance.now(); keepAwake();
+    if (!started) { beep(660, 0.08, 0.25); if (phases[0].type === "work") buzz([300]); }
+    started = true; running = true; lastTs = performance.now(); keepAwake();
     render(); raf = requestAnimationFrame(tick);
   }
   function pause() { running = false; cancelAnimationFrame(raf); releaseAwake(); render(); }
-  function reset() { pause(); done = false; idx = 0; remaining = phases[0].dur * 1000; lastSec = null; render(); }
-
-  go.addEventListener("click", () => running ? pause() : start());
-  $("reset").addEventListener("click", reset);
-  $("skip").addEventListener("click", () => {
+  function reset() { pause(); done = false; started = false; idx = 0; remaining = phases[0].dur * 1000; up = 0; lastSec = null; render(); }
+  function advance() {
     if (done) return;
     enterPhase(idx + 1);
     if (!done) { lastTs = performance.now(); render(); }
-  });
+  }
+  function onGo() {
+    if (done) return;
+    if (running && phases[idx].untimed) advance();
+    else running ? pause() : start();
+  }
+
+  go.addEventListener("click", onGo);
+  $("reset").addEventListener("click", reset);
+  $("skip").addEventListener("click", advance);
   document.addEventListener("keydown", e => {
-    if (e.code === "Space" && e.target === document.body) { e.preventDefault(); running ? pause() : start(); }
+    if (e.code === "Space" && e.target === document.body) { e.preventDefault(); onGo(); }
   });
 
   // Réglages
   const dlg = $("settings");
   let draft = {};
   const steppers = [...dlg.querySelectorAll(".stepper")];
+  const modeBtns = [...$("modes").querySelectorAll("button")];
   function paintDraft() {
+    dlg.dataset.mode = draft.mode;
+    modeBtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === draft.mode)));
+    $("hint").textContent = HINT[draft.mode];
     steppers.forEach(s => { const k = s.dataset.key; s.querySelector("output").textContent = s.hasAttribute("data-time") ? fmt(draft[k]) : draft[k]; });
   }
+  modeBtns.forEach(b => b.addEventListener("click", () => { draft.mode = b.dataset.mode; paintDraft(); }));
   steppers.forEach(s => s.addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     const k = s.dataset.key, step = +s.dataset.step;
@@ -314,7 +438,7 @@ dialog h2 { font-family: var(--display); font-weight: 900; text-transform: upper
     paintDraft();
   }));
   $("openSettings").addEventListener("click", () => { if (running) pause(); draft = { ...cfg }; paintDraft(); dlg.showModal(); });
-  $("defaults").addEventListener("click", () => { draft = { ...DEFAULTS }; paintDraft(); });
+  $("defaults").addEventListener("click", () => { draft = { ...DEFAULTS, mode: draft.mode }; paintDraft(); });
   $("saveSettings").addEventListener("click", () => {
     cfg = { ...draft };
     try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {}

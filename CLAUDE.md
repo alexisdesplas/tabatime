@@ -4,7 +4,12 @@ Timer d'intervalles pour la corde à sauter, en appli web installable (PWA) sur 
 
 ## État actuel
 - L'appli est terminée et testée au format iPhone : `index.html` (interface, timer, sons, réglages), `manifest.webmanifest`, `sw.js` (hors connexion), `icons/`.
-- Par défaut : 6 rounds × 1:00 de corde / 0:30 de repos, 10 s de préparation. Réglages modifiables dans l'appli et gardés dans le localStorage.
+- Trois modes (clé `mode` dans les réglages, gardés dans le localStorage) :
+  - `tabata` : rounds × effort / repos (défaut 6 × 1:00 / 0:30).
+  - `emom` : `emomRounds` intervalles de `emomEvery` s, objectif `emomReps` reps (0 = libre). Pas de phase repos, le repos est implicite dans l'intervalle.
+  - `series` : `serRounds` × `serSets` séries × `serReps` reps, `serRest` s de repos entre séries. La phase série est non chronométrée (`untimed`) : chrono qui monte, bouton Go devenu « Fait » qui passe au repos.
+  - `prep` (préparation) commun à tous les modes.
+- Moteur : `build()` génère une liste `phases` selon le mode, `tick()` consomme le temps ; une phase `untimed` accumule `up` au lieu de décrémenter `remaining`.
 - Dépôt GitHub public : https://github.com/alexisdesplas/tabatime (branche `main`, remote `origin`).
 - GitHub Pages activé (branche `main`, racine `/`) : https://alexisdesplas.github.io/tabatime/
 
