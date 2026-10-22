@@ -13,6 +13,9 @@ Timer d'intervalles pour la corde à sauter, en appli web installable (PWA) sur 
 - Dépôt GitHub public : https://github.com/alexisdesplas/tabatime (branche `main`, remote `origin`).
 - GitHub Pages activé (branche `main`, racine `/`) : https://alexisdesplas.github.io/tabatime/
 
+## Propositions en cours
+- `apple/index.html` : proposition « style Apple » demandée par Alexis le 22/10/2026, servie sur https://alexisdesplas.github.io/tabatime/apple/. Même moteur JS que `index.html` (copié puis patché par script, pas de code partagé), habillage différent : noir OLED, polices système SF Pro (chiffres fins 200, grand titre 34 pt), anneau épais avec piste translucide (anneaux Activité), boutons ronds avec liseré (app Horloge), couleurs système iOS (jaune `#ffd60a`, rose Move `#ff375f`, vert `#30d158`), réglages en feuille montante avec contrôle segmenté et liste groupée. Pas encore tranché : si elle est retenue, elle remplace `index.html` ; sinon, supprimer le dossier.
+
 ## Prochaines étapes
 1. Ouvrir https://alexisdesplas.github.io/tabatime/ dans Safari sur l'iPhone → Partager → « Sur l'écran d'accueil ».
 

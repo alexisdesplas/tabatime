@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="fr" data-phase="prep">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Tabatime</title>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tabatime">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<style>
+/* Proposition « Apple » : noir OLED, SF Pro, anneau Activité, boutons ronds Horloge, feuille de réglages iOS */
+:root {
+  --bg: #000;
+  --surface: #1c1c1e;
+  --surface2: #2c2c2e;
+  --fill: #3a3a3c;
+  --separator: rgba(84, 84, 88, .65);
+  --label: #fff;
+  --secondary: #8e8e93;
+  --tint: #0a84ff;
+  --prep: #ffd60a;   /* systemYellow */
+  --work: #ff375f;   /* rose Move */
+  --rest: #30d158;   /* systemGreen */
+  --phase: var(--prep);
+  --text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+  --ease: cubic-bezier(.25, .1, .25, 1);
+  --sheet: cubic-bezier(.32, .72, 0, 1);
+  color-scheme: dark;
+}
+html[data-phase="work"] { --phase: var(--work); }
+html[data-phase="rest"], html[data-phase="done"] { --phase: var(--rest); }
+::selection { background: var(--phase); color: #000; }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  color: var(--label); font-family: var(--text); -webkit-font-smoothing: antialiased;
+  padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
+  overflow: hidden; -webkit-user-select: none; user-select: none; overscroll-behavior: none;
+}
+.app { height: 100%; max-width: 430px; margin: 0 auto; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; padding-block: 10px 18px; }
+
+/* En-tête : grand titre iOS, sous-titre gris, bouton rond de réglages */
+header { display: flex; flex-direction: column; gap: 16px; }
+.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.title { margin: 0; font: 700 34px/1.15 var(--display); letter-spacing: -.012em; }
+.subtitle { color: var(--secondary); font: 400 15px/1.3 var(--text); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.spec-btn { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--surface); color: var(--label); display: grid; place-items: center; cursor: pointer; transition: transform 120ms var(--ease), background-color 150ms; }
+.spec-btn:active { transform: scale(.92); background: var(--surface2); }
+.spec-btn svg { width: 18px; height: 18px; }
+.rounds { display: grid; gap: 3px; }
+.rounds span { height: 4px; border-radius: 2px; background: var(--surface2); position: relative; overflow: hidden; }
+.rounds span i { position: absolute; inset: 0; width: 0; background: var(--phase); transition: background-color 300ms var(--ease); }
+.rounds span.done i { width: 100%; }
+
+/* Anneau Activité : trait épais, piste translucide de la même teinte */
+main { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; min-height: 0; }
+.ring-wrap { position: relative; width: min(80vw, 50vh, 340px); aspect-ratio: 1; max-width: 100%; }
+.ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.track { fill: none; stroke: var(--phase); stroke-opacity: .2; stroke-width: 11; transition: stroke 300ms var(--ease); }
+.prog { fill: none; stroke: var(--phase); stroke-width: 11; stroke-linecap: round; transition: stroke 300ms var(--ease), opacity 200ms var(--ease); }
+.center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: opacity 200ms var(--ease); }
+.app[data-paused] .prog, .app[data-paused] .center { opacity: .4; }
+.phase { font: 600 13px/1 var(--text); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color 300ms var(--ease); }
+.time { font: 200 clamp(64px, 22vw, 96px)/1 var(--display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; will-change: transform; }
+.sub { color: var(--secondary); font: 400 15px/1.3 var(--text); text-align: center; font-variant-numeric: tabular-nums; }
+.next { color: var(--secondary); font: 400 15px/1.3 var(--text); text-align: center; min-height: 1.3em; }
+.next b { color: var(--label); font-weight: 600; }
+
+/* Boutons ronds comme Horloge : disque, liseré fin séparé par 2 px de noir */
+footer { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; }
+button { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; touch-action: manipulation; }
+.ctl {
+  width: 80px; height: 80px; border-radius: 50%; border: 0; background: var(--surface); color: var(--label);
+  font: 400 16px/1 var(--text); cursor: pointer;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--surface);
+  transition: transform 120ms var(--ease), background-color 300ms var(--ease), color 300ms var(--ease), box-shadow 300ms var(--ease), opacity 200ms;
+}
+.ctl:active { transform: scale(.94); }
+.ctl:disabled { opacity: .35; transform: none; cursor: default; }
+button:focus-visible { outline: 3px solid var(--tint); outline-offset: 5px; }
+#go {
+  width: 96px; height: 96px; font-weight: 600; font-size: 17px;
+  background: color-mix(in srgb, var(--phase) 26%, transparent); color: var(--phase);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px color-mix(in srgb, var(--phase) 26%, transparent);
+}
+.total { grid-column: 1 / -1; text-align: center; color: var(--secondary); font: 400 13px/1.3 var(--text); margin-top: 16px; font-variant-numeric: tabular-nums; }
+
+/* Feuille de réglages iOS */
+dialog {
+  position: fixed; inset: auto 0 0 0; margin: 0 auto; width: 100%; max-width: 430px; max-height: 92vh; overflow: auto;
+  border: 0; border-radius: 12px 12px 0 0; padding: 0 0 max(20px, env(safe-area-inset-bottom, 0px));
+  background: var(--surface); color: var(--label); font-family: var(--text);
+  transform: translateY(100%);
+  transition: transform 300ms var(--sheet), overlay 300ms allow-discrete, display 300ms allow-discrete;
+}
+dialog[open] { transform: none; transition-duration: 420ms; }
+@starting-style { dialog[open] { transform: translateY(100%); } }
+dialog::backdrop { background: rgba(0,0,0,0); transition: background 300ms var(--ease), overlay 300ms allow-discrete, display 300ms allow-discrete; }
+dialog[open]::backdrop { background: rgba(0,0,0,.5); transition-duration: 420ms; }
+@starting-style { dialog[open]::backdrop { background: rgba(0,0,0,0); } }
+.grabber { width: 36px; height: 5px; border-radius: 3px; background: #5e5e63; margin: 6px auto 0; }
+.sheet-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 16px 6px; }
+.sheet-head h2 { margin: 0; font: 600 17px/1.3 var(--text); text-align: center; }
+.sheet-head button { border: 0; background: none; color: var(--tint); font: 400 17px/1 var(--text); padding: 8px 0; cursor: pointer; }
+.sheet-head button:first-child { justify-self: start; }
+.sheet-head button:last-child { justify-self: end; font-weight: 600; }
+.sheet-head button:active { opacity: .5; }
+.sheet-body { padding: 8px 16px 0; display: grid; gap: 22px; }
+.modes { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface2); border-radius: 9px; padding: 2px; }
+.modes .pill { position: absolute; top: 2px; left: 2px; height: calc(100% - 4px); width: calc((100% - 4px) / 3); border-radius: 7px; background: #636366; box-shadow: 0 3px 8px rgba(0,0,0,.14), 0 3px 1px rgba(0,0,0,.04); transition: transform 240ms var(--ease); }
+.modes button { position: relative; z-index: 1; border: 0; background: none; color: var(--label); font: 500 13px/1 var(--text); padding: 9px 4px; cursor: pointer; border-radius: 7px; }
+.modes button[aria-pressed="true"] { font-weight: 600; }
+.group { background: var(--surface2); border-radius: 10px; overflow: hidden; }
+.hint { color: var(--secondary); font: 400 13px/1.35 var(--text); margin: -14px 16px 0; }
+.field { display: none; position: relative; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 16px; min-height: 52px; }
+.field.always { display: flex; }
+dialog[data-mode="tabata"] .field[data-mode~="tabata"],
+dialog[data-mode="emom"] .field[data-mode~="emom"],
+dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
+.field + .field::before { content: ""; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--separator); transform: scaleY(.5); transform-origin: top; }
+.field label { font: 400 17px/1.3 var(--text); }
+.field small { display: block; color: var(--secondary); font-size: 13px; margin-top: 1px; }
+.stepper { display: flex; align-items: center; gap: 14px; }
+.stepper output { color: var(--secondary); font: 400 17px/1 var(--text); font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; }
+.stepper .btns { display: flex; background: var(--fill); border-radius: 8px; overflow: hidden; }
+.stepper .btns button { width: 46px; height: 32px; border: 0; background: none; color: var(--label); font: 400 20px/1 var(--text); cursor: pointer; transition: background-color 120ms; }
+.stepper .btns button + button { border-left: 1px solid rgba(0,0,0,.35); }
+.stepper .btns button:active { background: rgba(255,255,255,.14); }
+.row-btn { display: block; width: 100%; border: 0; background: var(--surface2); color: var(--tint); font: 400 17px/1.3 var(--text); padding: 12px 16px; text-align: center; border-radius: 10px; cursor: pointer; }
+.row-btn:active { background: var(--fill); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ctl, .spec-btn, .modes .pill, .rounds span i, .prog, .track, .phase { transition: none; }
+  dialog, dialog::backdrop { transition: opacity 120ms, background 120ms, overlay 120ms allow-discrete, display 120ms allow-discrete; transform: none; }
+  .ctl:active, .spec-btn:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div class="top">
+      <div>
+        <h1 class="title">Tabatime</h1>
+        <div class="subtitle" id="spec">Tabata · 6 × 1:00 / 0:30</div>
+      </div>
+      <button class="spec-btn" id="openSettings" type="button" aria-label="Réglages">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
+      </button>
+    </div>
+    <div class="rounds" id="rounds" aria-label="Progression des rounds"></div>
+  </header>
+
+  <main>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="track" cx="50" cy="50" r="44"></circle>
+        <circle class="prog" id="prog" cx="50" cy="50" r="44"></circle>
+      </svg>
+      <div class="center">
+        <div class="phase" id="phase">Prêt</div>
+        <div class="time" id="time">0:10</div>
+        <div class="sub" id="sub">Round 1 / 6</div>
+      </div>
+    </div>
+    <div class="next" id="next"></div>
+  </main>
+
+  <footer>
+    <button class="ctl" id="reset" type="button">Reset</button>
+    <button class="ctl" id="go" type="button">Démarrer</button>
+    <button class="ctl" id="skip" type="button">Passer</button>
+    <div class="total" id="total"></div>
+  </footer>
+</div>
+
+<dialog id="settings" data-mode="tabata">
+  <div class="grabber" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <button type="button" id="cancelSettings">Annuler</button>
+    <h2>Réglages</h2>
+    <button type="button" id="saveSettings">OK</button>
+  </div>
+  <div class="sheet-body">
+    <div class="modes" id="modes" aria-label="Mode">
+      <i class="pill" id="pill" aria-hidden="true"></i>
+      <button type="button" data-mode="tabata" aria-pressed="true">Tabata</button>
+      <button type="button" data-mode="emom" aria-pressed="false">EMOM</button>
+      <button type="button" data-mode="series" aria-pressed="false">Séries</button>
+    </div>
+    <p class="hint" id="hint"></p>
+    <div class="group">
+    <div class="field" data-mode="tabata"><label>Rounds</label><div class="stepper" data-key="rounds" data-step="1" data-min="1" data-max="30"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="tabata"><label>Corde<small>Durée d'effort</small></label><div class="stepper" data-key="work" data-step="5" data-min="5" data-max="600" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="tabata"><label>Repos</label><div class="stepper" data-key="rest" data-step="5" data-min="0" data-max="600" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="emom"><label>Minutes<small>Nombre d'intervalles</small></label><div class="stepper" data-key="emomRounds" data-step="1" data-min="1" data-max="60"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="emom"><label>Intervalle<small>Durée de chaque minute</small></label><div class="stepper" data-key="emomEvery" data-step="10" data-min="20" data-max="300" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="emom"><label>Reps<small>Objectif par intervalle, 0 = libre</small></label><div class="stepper" data-key="emomReps" data-step="5" data-min="0" data-max="200"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="series"><label>Rounds</label><div class="stepper" data-key="serRounds" data-step="1" data-min="1" data-max="20"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="series"><label>Séries<small>Par round</small></label><div class="stepper" data-key="serSets" data-step="1" data-min="1" data-max="20"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="series"><label>Reps<small>Par série</small></label><div class="stepper" data-key="serReps" data-step="1" data-min="1" data-max="100"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    <div class="field" data-mode="series"><label>Repos<small>Entre les séries</small></label><div class="stepper" data-key="serRest" data-step="5" data-min="0" data-max="600" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    </div>
+    <div class="group">
+    <div class="field always"><label>Préparation<small>Avant le départ</small></label><div class="stepper" data-key="prep" data-step="5" data-min="0" data-max="60" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
+    </div>
+    <button class="row-btn" type="button" id="defaults">Rétablir les valeurs par défaut</button>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  const DEFAULTS = {
+    mode: "tabata",
+    rounds: 6, work: 60, rest: 30, prep: 10,
+    emomRounds: 10, emomEvery: 60, emomReps: 30,
+    serRounds: 4, serSets: 3, serReps: 10, serRest: 30
+  };
+  const MODES = ["tabata", "emom", "series"];
+  const HINT = {
+    tabata: "Rounds d'effort chronométrés, séparés par du repos.",
+    emom: "Every Minute On the Minute : à chaque intervalle, fais tes reps puis récupère jusqu'au suivant.",
+    series: "Séries de reps à ton rythme : appuie sur Fait quand la série est finie, le repos démarre."
+  };
+  const KEY = "tabatime-settings";
+  let cfg = { ...DEFAULTS };
+  try { Object.assign(cfg, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+  if (!MODES.includes(cfg.mode)) cfg.mode = "tabata";
+
+  const $ = id => document.getElementById(id);
+  const app = $("app"), timeEl = $("time"), phaseEl = $("phase"), subEl = $("sub"),
+        nextEl = $("next"), totalEl = $("total"), go = $("go"), prog = $("prog"), roundsEl = $("rounds"),
+        root = document.documentElement, themeMeta = document.querySelector('meta[name="theme-color"]');
+  const C = 2 * Math.PI * 45;
+  prog.style.strokeDasharray = C;
+  const EASE = "cubic-bezier(.23, 1, .32, 1)";
+  const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function paint(type, lit) {
+    root.dataset.phase = type;
+    root.toggleAttribute("data-lit", lit);
+    themeMeta.content = "#000000";
+  }
+  const endsAt = secs => { const d = new Date(Date.now() + secs * 1000); return d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"); };
+
+  const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+  // phases : { type: prep|work|rest, dur (s), round, set?, untimed? }
+  let phases = [], TOTAL = 0, bars = [], nRounds = 0, workIdx = [], nSets = 0;
+  function build() {
+    phases = [];
+    const m = cfg.mode;
+    let spec = "";
+    if (cfg.prep > 0) phases.push({ type: "prep", dur: cfg.prep, round: 1 });
+    if (m === "tabata") {
+      nRounds = cfg.rounds;
+      for (let r = 1; r <= nRounds; r++) {
+        phases.push({ type: "work", dur: cfg.work, round: r });
+        if (r < nRounds && cfg.rest > 0) phases.push({ type: "rest", dur: cfg.rest, round: r });
+      }
+      spec = `${nRounds} × ${fmt(cfg.work)} / ${fmt(cfg.rest)}`;
+    } else if (m === "emom") {
+      nRounds = cfg.emomRounds;
+      for (let r = 1; r <= nRounds; r++) phases.push({ type: "work", dur: cfg.emomEvery, round: r });
+      spec = `${nRounds} × ${fmt(cfg.emomEvery)}`;
+    } else {
+      nRounds = cfg.serRounds;
+      for (let r = 1; r <= nRounds; r++) for (let s = 1; s <= cfg.serSets; s++) {
+        phases.push({ type: "work", dur: 0, untimed: true, round: r, set: s });
+        const last = r === nRounds && s === cfg.serSets;
+        if (!last && cfg.serRest > 0) phases.push({ type: "rest", dur: cfg.serRest, round: r, set: s });
+      }
+      spec = `${nRounds} × ${cfg.serSets} × ${cfg.serReps} / ${fmt(cfg.serRest)}`;
+    }
+    TOTAL = phases.reduce((s, p) => s + p.dur, 0);
+    nSets = phases.filter(p => p.untimed).length;
+    workIdx = [];
+    phases.forEach((p, i) => { if (p.type === "work") (workIdx[p.round] = workIdx[p.round] || []).push(i); });
+    roundsEl.innerHTML = "";
+    roundsEl.style.gridTemplateColumns = `repeat(${nRounds}, 1fr)`;
+    roundsEl.style.gap = nRounds > 40 ? "2px" : nRounds > 20 ? "3px" : "";
+    for (let i = 0; i < nRounds; i++) roundsEl.appendChild(Object.assign(document.createElement("span"), { innerHTML: "<i></i>" }));
+    bars = [...roundsEl.children];
+    $("spec").textContent = ({ tabata: "Tabata", emom: "EMOM", series: "Séries" })[m] + " · " + spec;
+  }
+
+  function label(p) {
+    if (p.type === "prep") return "Prêt";
+    if (p.type === "rest") return "Repos";
+    if (cfg.mode === "emom") return `Minute ${p.round}`;
+    if (cfg.mode === "series") return `Série ${p.set} / ${cfg.serSets}`;
+    return "Corde";
+  }
+
+  let idx = 0, remaining = 0, up = 0, running = false, started = false, lastTs = 0, lastSec = null, done = false, raf = 0;
+
+  // Son
+  let ctx = null;
+  function beep(freq = 880, dur = 0.12, vol = 0.35, when = 0) {
+    if (!ctx) return;
+    const t = ctx.currentTime + when, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "square"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+  // Écran allumé
+  let lock = null;
+  async function keepAwake() {
+    try { if ("wakeLock" in navigator && !lock) { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => lock = null); } } catch (e) {}
+  }
+  function releaseAwake() { try { lock && lock.release(); } catch (e) {} lock = null; }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && running) { keepAwake(); if (ctx && ctx.state === "suspended") ctx.resume(); }
+  });
+
+  function elapsedTotal() {
+    let s = 0; for (let i = 0; i < idx; i++) s += phases[i].dur;
+    const p = phases[idx];
+    return s + (p && !p.untimed ? p.dur - remaining / 1000 : 0);
+  }
+  const setsDone = () => phases.slice(0, idx).filter(p => p.untimed).length;
+
+  function render() {
+    const m = cfg.mode;
+    if (done) {
+      paint("done", true); app.removeAttribute("data-paused");
+      phaseEl.textContent = "Terminé"; timeEl.textContent = "0:00";
+      subEl.textContent = m === "emom" ? `${nRounds} minutes bouclées` : m === "series" ? `${nSets} séries bouclées` : `${nRounds} rounds bouclés`;
+      nextEl.textContent = "Bien joué. Étire les mollets.";
+      prog.style.strokeDashoffset = 0;
+      bars.forEach(b => { b.className = "done"; b.firstChild.style.width = ""; });
+      totalEl.textContent = m === "series" ? `${nSets} séries · terminé` : `Durée totale ${fmt(TOTAL)} · terminé`;
+      go.textContent = "Démarrer"; go.disabled = true;
+      return;
+    }
+    const p = phases[idx], n = phases[idx + 1];
+    paint(p.type, running || !started); // allumé dès l'ouverture, éteint seulement en pause
+    app.toggleAttribute("data-paused", started && !running);
+    phaseEl.textContent = label(p);
+    timeEl.textContent = p.untimed ? String(cfg.serReps) : fmt(remaining / 1000);
+
+    // Ligne sous le chiffre
+    if (p.type === "prep") {
+      subEl.textContent = m === "emom" ? `${nRounds} × ${fmt(cfg.emomEvery)}` : m === "series" ? `${nRounds} rounds × ${cfg.serSets} séries` : `Round 1 / ${nRounds}`;
+    } else if (m === "emom") {
+      subEl.textContent = (cfg.emomReps > 0 ? `${cfg.emomReps} reps · ` : "") + `${p.round} / ${nRounds}`;
+    } else if (m === "series") {
+      subEl.textContent = p.untimed ? `reps · Round ${p.round} / ${nRounds}` : `Round ${p.round} / ${nRounds}`;
+    } else {
+      subEl.textContent = p.type === "rest" ? `Après round ${p.round} / ${nRounds}` : `Round ${p.round} / ${nRounds}`;
+    }
+
+    // Ce qui vient ensuite
+    if (started && !running) nextEl.textContent = "En pause";
+    else if (!n) nextEl.textContent = m === "emom" ? "Dernière minute, tout donner" : m === "series" ? "Dernière série, tout donner" : "Dernier effort, tout donner";
+    else {
+      const showTime = !n.untimed && !(m === "emom" && n.type === "work");
+      let extra = "";
+      if (m === "tabata" && n.type === "work") extra = ` · round ${n.round}`;
+      if (m === "series" && n.type === "work" && n.set === 1) extra = ` · round ${n.round}`;
+      const chrono = p.untimed ? `Chrono ${fmt(up / 1000)} · ` : "";
+      nextEl.innerHTML = `${chrono}Ensuite : <b>${label(n)}${showTime ? " " + fmt(n.dur) : ""}</b>${extra}`;
+    }
+
+    prog.style.strokeDashoffset = p.untimed ? 0 : C * (1 - remaining / (p.dur * 1000));
+
+    bars.forEach((b, i) => {
+      const r = i + 1, fill = b.firstChild, ws = workIdx[r] || [];
+      const finished = ws.length > 0 && ws[ws.length - 1] < idx;
+      b.className = finished ? "done" : "";
+      let w = "";
+      if (!finished && p.type !== "prep" && p.round === r) {
+        const doneCount = ws.filter(j => j < idx).length;
+        const cur = (p.type === "work" && !p.untimed) ? 1 - remaining / (p.dur * 1000) : 0;
+        w = (100 * (doneCount + cur) / ws.length) + "%";
+      }
+      fill.style.width = w;
+    });
+
+    totalEl.textContent = m === "series"
+      ? `Série ${Math.min(nSets, setsDone() + (p.untimed ? 1 : 0))} / ${nSets} · repos cumulé ${fmt(TOTAL)}`
+      : `Durée totale ${fmt(TOTAL)} · reste ${fmt(TOTAL - elapsedTotal())}` + (running ? ` · fin ${endsAt(TOTAL - elapsedTotal())}` : "");
+    go.textContent = running ? (p.untimed ? "Fait" : "Pause") : (started ? "Reprendre" : "Démarrer");
+    go.disabled = false;
+  }
+
+  function enterPhase(i) {
+    idx = i;
+    if (idx >= phases.length) { finish(); return; }
+    remaining = phases[idx].dur * 1000; up = 0;
+    lastSec = null;
+    const t = phases[idx].type;
+    if (t === "work") { beep(1320, 0.45, 0.4); buzz([300]); }
+    else if (t === "rest") { beep(520, 0.6, 0.4); buzz([150, 80, 150]); }
+  }
+
+  function finish() {
+    done = true; running = false; cancelAnimationFrame(raf); releaseAwake();
+    beep(1046, 0.18, 0.4, 0); beep(1318, 0.18, 0.4, 0.22); beep(1568, 0.5, 0.4, 0.44);
+    buzz([200, 100, 200, 100, 400]);
+    render();
+    if (!reduceMotion()) prog.animate([{ strokeDashoffset: C }, { strokeDashoffset: 0 }], { duration: 900, easing: EASE });
+  }
+
+  function tick(ts) {
+    if (!running) return;
+    let dt = ts - lastTs; lastTs = ts;
+    while (dt > 0 && !done) {
+      const p = phases[idx];
+      if (p.untimed) { up += dt; dt = 0; }
+      else if (dt < remaining) { remaining -= dt; dt = 0; }
+      else { dt -= remaining; enterPhase(idx + 1); }
+    }
+    if (done) return;
+    if (!phases[idx].untimed) {
+      const sec = Math.ceil(remaining / 1000);
+      if (lastSec !== null && sec !== lastSec && sec >= 1 && sec <= 3) {
+        beep(880, 0.1, 0.3); buzz(60);
+        if (!reduceMotion()) timeEl.animate([{ transform: "scale(1.06)" }, { transform: "scale(1)" }], { duration: 240, easing: EASE });
+      }
+      lastSec = sec;
+    }
+    render();
+    raf = requestAnimationFrame(tick);
+  }
+
+  function start() {
+    if (done) return;
+    if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (ctx && ctx.state === "suspended") ctx.resume();
+    if (!started) { beep(660, 0.08, 0.25); if (phases[0].type === "work") buzz([300]); }
+    started = true; running = true; lastTs = performance.now(); keepAwake();
+    render(); raf = requestAnimationFrame(tick);
+  }
+  function pause() { running = false; cancelAnimationFrame(raf); releaseAwake(); render(); }
+  function reset() { pause(); done = false; started = false; idx = 0; remaining = phases[0].dur * 1000; up = 0; lastSec = null; render(); }
+  function advance() {
+    if (done) return;
+    enterPhase(idx + 1);
+    if (!done) { lastTs = performance.now(); render(); }
+  }
+  function onGo() {
+    if (done) return;
+    if (running && phases[idx].untimed) advance();
+    else running ? pause() : start();
+  }
+
+  go.addEventListener("click", onGo);
+  $("reset").addEventListener("click", reset);
+  $("skip").addEventListener("click", advance);
+  document.addEventListener("keydown", e => {
+    if (e.code === "Space" && e.target === document.body) { e.preventDefault(); onGo(); }
+  });
+
+  // Réglages
+  const dlg = $("settings");
+  let draft = {};
+  const steppers = [...dlg.querySelectorAll(".stepper")];
+  const modeBtns = [...$("modes").querySelectorAll("button")], pill = $("pill");
+  function paintDraft() {
+    dlg.dataset.mode = draft.mode;
+    const mi = MODES.indexOf(draft.mode);
+    pill.style.transform = `translateX(${mi * 100}%)`;
+    modeBtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === draft.mode)));
+    $("hint").textContent = HINT[draft.mode];
+    steppers.forEach(s => { const k = s.dataset.key; s.querySelector("output").textContent = s.hasAttribute("data-time") ? fmt(draft[k]) : draft[k]; });
+  }
+  modeBtns.forEach(b => b.addEventListener("click", () => { draft.mode = b.dataset.mode; paintDraft(); }));
+  // Steppers : un tap = un pas, maintien appuyé = défilement
+  steppers.forEach(s => {
+    const k = s.dataset.key, step = +s.dataset.step;
+    const bump = d => { draft[k] = Math.min(+s.dataset.max, Math.max(+s.dataset.min, draft[k] + step * d)); paintDraft(); };
+    let hold = 0, repeat = 0;
+    const stop = () => { clearTimeout(hold); clearInterval(repeat); hold = repeat = 0; };
+    s.addEventListener("pointerdown", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      e.preventDefault(); stop();
+      const d = +b.dataset.d; bump(d);
+      hold = setTimeout(() => { repeat = setInterval(() => bump(d), 70); }, 420);
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => s.addEventListener(ev, stop));
+    s.addEventListener("click", e => { // clavier uniquement (Entrée / Espace) : detail vaut 0
+      const b = e.target.closest("button"); if (b && e.detail === 0) bump(+b.dataset.d);
+    });
+  });
+  $("openSettings").addEventListener("click", () => { if (running) pause(); draft = { ...cfg }; paintDraft(); dlg.showModal(); });
+  $("defaults").addEventListener("click", () => { draft = { ...DEFAULTS, mode: draft.mode }; paintDraft(); });
+  $("saveSettings").addEventListener("click", () => {
+    cfg = { ...draft };
+    try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {}
+    dlg.close(); build(); reset();
+  });
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+  $("cancelSettings").addEventListener("click", () => dlg.close());
+
+  build(); reset();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("../sw.js").catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>
