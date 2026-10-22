@@ -272,7 +272,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
   const EASE = "cubic-bezier(.23, 1, .32, 1)";
   const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const PHASE_COLOR = { prep: "#f2c230", work: "#ff5a36", rest: "#2fc4b2", done: "#2fc4b2" };
-  // L'écran entier prend la couleur de la phase quand le timer tourne ; éteint au repos et en pause
+  // L'écran entier prend la couleur de la phase ; il ne s'éteint qu'en pause
   function paint(type, lit) {
     root.dataset.phase = type;
     root.toggleAttribute("data-lit", lit);
@@ -374,7 +374,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
       return;
     }
     const p = phases[idx], n = phases[idx + 1];
-    paint(p.type, running);
+    paint(p.type, running || !started); // allumé dès l'ouverture, éteint seulement en pause
     app.toggleAttribute("data-paused", started && !running);
     phaseEl.textContent = label(p);
     timeEl.textContent = p.untimed ? String(cfg.serReps) : fmt(remaining / 1000);
