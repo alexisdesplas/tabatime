@@ -30,13 +30,46 @@
   --ease-out: cubic-bezier(.23, 1, .32, 1);
   --ease-in-out: cubic-bezier(.77, 0, .175, 1);
   color-scheme: dark;
+
+  /* État éteint (repos, pause) : fond sombre, accents couleur de phase */
+  --phase: var(--prep);
+  --ground: var(--bg);
+  --surface-hover: #242930;
+  --phase-text: var(--phase);
+  --ring: var(--phase);
+  --ring-track: var(--surface);
+  --bar-fill: var(--work);
+  --go-bg: var(--phase);
+  --go-fg: #121417;
 }
-.app ::selection { background: var(--phase); color: #121417; }
+html[data-phase="work"] { --phase: var(--work); }
+html[data-phase="rest"], html[data-phase="done"] { --phase: var(--rest); }
+
+/* État allumé (timer en marche, fin) : tout l'écran prend la couleur de la phase, le contenu passe en encre */
+html[data-lit] {
+  --ground: var(--phase);
+  --fg: #121417;
+  --muted: var(--ink2);
+  --surface: rgba(18, 20, 23, .12);
+  --surface-hover: rgba(18, 20, 23, .2);
+  --line: rgba(18, 20, 23, .22);
+  --phase-text: #121417;
+  --ring: #121417;
+  --ring-track: rgba(18, 20, 23, .16);
+  --bar-fill: #121417;
+  --go-bg: #121417;
+  --go-fg: var(--phase);
+}
+html[data-lit][data-phase="prep"] { --ink2: #4a3806; }
+html[data-lit][data-phase="work"] { --ink2: #4a1408; }
+html[data-lit][data-phase="rest"], html[data-lit][data-phase="done"] { --ink2: #073a34; }
+.app ::selection { background: var(--fg); color: var(--ground); }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
-html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--ground); transition: background-color 320ms var(--ease-out); }
 body {
-  background: var(--bg); color: var(--fg); font-family: var(--body);
+  background: var(--ground); color: var(--fg); font-family: var(--body);
+  transition: background-color 320ms var(--ease-out), color 320ms var(--ease-out);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   overflow: hidden; -webkit-user-select: none; user-select: none;
@@ -46,11 +79,7 @@ body {
   height: 100%; max-width: 480px; margin: 0 auto;
   display: grid; grid-template-rows: auto 1fr auto; gap: 16px;
   padding-block: 20px 24px;
-  --phase: var(--prep);
 }
-.app[data-phase="work"] { --phase: var(--work); }
-.app[data-phase="rest"], .app[data-phase="done"] { --phase: var(--rest); }
-#flash { position: fixed; inset: 0; background: var(--phase); opacity: 0; pointer-events: none; z-index: 1; }
 
 header { display: flex; flex-direction: column; gap: 12px; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -60,27 +89,27 @@ header { display: flex; flex-direction: column; gap: 12px; }
   background: none; border: 1px solid var(--line); border-radius: 999px;
   color: var(--muted); padding: 9px 12px; font: 600 .85rem/1 var(--body);
   font-variant-numeric: tabular-nums; cursor: pointer;
-  transition: transform 160ms var(--ease-out), color 150ms, border-color 150ms;
+  transition: transform 160ms var(--ease-out), color 320ms var(--ease-out), border-color 320ms var(--ease-out);
 }
 .spec-btn:active { transform: scale(.96); }
 @media (hover: hover) and (pointer: fine) { .spec-btn:hover { color: var(--fg); border-color: var(--muted); } }
 .spec-btn svg { width: 14px; height: 14px; flex: none; }
 .rounds { display: grid; gap: 6px; }
-.rounds span { height: 8px; border-radius: 4px; background: var(--line); position: relative; overflow: hidden; }
-.rounds span i { position: absolute; inset: 0; width: 0; background: var(--work); }
+.rounds span { height: 8px; border-radius: 4px; background: var(--line); position: relative; overflow: hidden; transition: background-color 320ms var(--ease-out); }
+.rounds span i { position: absolute; inset: 0; width: 0; background: var(--bar-fill); transition: background-color 320ms var(--ease-out); }
 .rounds span.done i { width: 100%; }
 
 main { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 0; }
 .ring-wrap { position: relative; width: min(82vw, 52vh, 380px); aspect-ratio: 1; max-width: 100%; }
 .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
-.track { fill: none; stroke: var(--surface); stroke-width: 7; }
-.prog { fill: none; stroke: var(--phase); stroke-width: 7; stroke-linecap: round; transition: stroke 200ms var(--ease-out), opacity 200ms var(--ease-out); }
+.track { fill: none; stroke: var(--ring-track); stroke-width: 7; transition: stroke 320ms var(--ease-out); }
+.prog { fill: none; stroke: var(--ring); stroke-width: 7; stroke-linecap: round; transition: stroke 320ms var(--ease-out), opacity 200ms var(--ease-out); }
 .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: opacity 200ms var(--ease-out); }
 .app[data-paused] .prog, .app[data-paused] .center { opacity: .5; }
-.phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color 200ms var(--ease-out); }
+.phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase-text); transition: color 320ms var(--ease-out); }
 .time { font-family: var(--display); font-weight: 900; line-height: .9; font-size: clamp(5rem, 26vw, 9rem); font-variant-numeric: tabular-nums; will-change: transform; }
-.sub { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; text-align: center; }
-.next { color: var(--muted); font-size: .85rem; text-align: center; min-height: 1.3em; }
+.sub { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; text-align: center; transition: color 320ms var(--ease-out); }
+.next { color: var(--muted); font-size: .85rem; text-align: center; min-height: 1.3em; transition: color 320ms var(--ease-out); }
 .next b { color: var(--fg); font-weight: 600; }
 
 footer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; }
@@ -88,17 +117,18 @@ button { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; 
 .ctl {
   font: 600 1rem/1 var(--body); color: var(--fg); background: var(--surface);
   border: 1px solid var(--line); border-radius: 14px; padding: 20px 8px; cursor: pointer;
-  transition: transform 160ms var(--ease-out), background 200ms var(--ease-out), opacity 200ms var(--ease-out);
+  transition: transform 160ms var(--ease-out), background-color 320ms var(--ease-out), border-color 320ms var(--ease-out), color 320ms var(--ease-out), opacity 200ms var(--ease-out);
 }
 .ctl:active { transform: scale(.97); }
-@media (hover: hover) and (pointer: fine) { .ctl:hover:not(:disabled):not(#go) { background: #242930; } #go:hover:not(:disabled) { filter: brightness(1.08); } }
-button:focus-visible, input:focus-visible { outline: 3px solid var(--phase); outline-offset: 2px; }
-#go { background: var(--phase); color: #121417; border-color: transparent; font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; }
+@media (hover: hover) and (pointer: fine) { .ctl:hover:not(:disabled):not(#go) { background: var(--surface-hover); } #go:hover:not(:disabled) { filter: brightness(1.08); } }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--phase-text); outline-offset: 2px; }
+#go { background: var(--go-bg); color: var(--go-fg); border-color: transparent; font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; }
 .ctl:disabled { opacity: .35; cursor: default; transform: none; }
-.total { text-align: center; color: var(--muted); font-size: .8rem; grid-column: 1 / -1; font-variant-numeric: tabular-nums; }
+.total { text-align: center; color: var(--muted); font-size: .8rem; grid-column: 1 / -1; font-variant-numeric: tabular-nums; transition: color 320ms var(--ease-out); }
 
 /* Réglages */
 dialog {
+  --fg: #f3f1ec; --muted: #8d949c; --surface: #1c2025; --line: #2c3239; --surface-hover: #242930;
   border: 0; border-radius: 20px; background: var(--surface); color: var(--fg);
   width: min(420px, calc(100vw - 32px)); padding: 20px; font-family: var(--body);
   max-height: calc(100vh - 32px); overflow: auto;
@@ -109,7 +139,7 @@ dialog {
 dialog[open] { opacity: 1; transform: none; transition-duration: 220ms; }
 @starting-style { dialog[open] { opacity: 0; transform: translateY(12px) scale(.97); } }
 dialog::backdrop { background: rgba(0,0,0,0); transition: background 160ms var(--ease-out), overlay 160ms allow-discrete, display 160ms allow-discrete; }
-dialog[open]::backdrop { background: rgba(0,0,0,.6); transition-duration: 220ms; }
+dialog[open]::backdrop { background: rgba(0,0,0,.55); transition-duration: 220ms; }
 @starting-style { dialog[open]::backdrop { background: rgba(0,0,0,0); } }
 dialog h2 { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 12px; font-size: 1.4rem; }
 .modes { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--bg); border-radius: 12px; padding: 4px; }
@@ -145,8 +175,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
 </style>
 </head>
 <body>
-<div class="app" id="app" data-phase="prep">
-  <div id="flash" aria-hidden="true"></div>
+<div class="app" id="app">
   <header>
     <div class="top">
       <h1 class="title">Tabatime</h1>
@@ -237,15 +266,17 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
   const $ = id => document.getElementById(id);
   const app = $("app"), timeEl = $("time"), phaseEl = $("phase"), subEl = $("sub"),
         nextEl = $("next"), totalEl = $("total"), go = $("go"), prog = $("prog"), roundsEl = $("rounds"),
-        flashEl = $("flash"), themeMeta = document.querySelector('meta[name="theme-color"]');
+        root = document.documentElement, themeMeta = document.querySelector('meta[name="theme-color"]');
   const C = 2 * Math.PI * 45;
   prog.style.strokeDasharray = C;
   const EASE = "cubic-bezier(.23, 1, .32, 1)";
   const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const PHASE_COLOR = { prep: "#f2c230", work: "#ff5a36", rest: "#2fc4b2", done: "#2fc4b2" };
-  // Un voile de la couleur de la phase qui s'estompe : le changement se voit du coin de l'œil
-  function flash() {
-    flashEl.animate([{ opacity: .45 }, { opacity: 0 }], { duration: 700, easing: EASE });
+  // L'écran entier prend la couleur de la phase quand le timer tourne ; éteint au repos et en pause
+  function paint(type, lit) {
+    root.dataset.phase = type;
+    root.toggleAttribute("data-lit", lit);
+    themeMeta.content = lit ? PHASE_COLOR[type] : "#121417";
   }
 
   const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
@@ -332,8 +363,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
   function render() {
     const m = cfg.mode;
     if (done) {
-      app.dataset.phase = "done"; app.removeAttribute("data-paused");
-      themeMeta.content = PHASE_COLOR.done;
+      paint("done", true); app.removeAttribute("data-paused");
       phaseEl.textContent = "Terminé"; timeEl.textContent = "0:00";
       subEl.textContent = m === "emom" ? `${nRounds} minutes bouclées` : m === "series" ? `${nSets} séries bouclées` : `${nRounds} rounds bouclés`;
       nextEl.textContent = "Bien joué. Étire les mollets.";
@@ -344,9 +374,8 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
       return;
     }
     const p = phases[idx], n = phases[idx + 1];
-    app.dataset.phase = p.type;
+    paint(p.type, running);
     app.toggleAttribute("data-paused", started && !running);
-    themeMeta.content = PHASE_COLOR[p.type];
     phaseEl.textContent = label(p);
     timeEl.textContent = p.untimed ? String(cfg.serReps) : fmt(remaining / 1000);
 
@@ -401,7 +430,6 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
     remaining = phases[idx].dur * 1000; up = 0;
     lastSec = null;
     const t = phases[idx].type;
-    app.dataset.phase = t; flash();
     if (t === "work") { beep(1320, 0.45, 0.4); buzz([300]); }
     else if (t === "rest") { beep(520, 0.6, 0.4); buzz([150, 80, 150]); }
   }
@@ -410,7 +438,6 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
     done = true; running = false; cancelAnimationFrame(raf); releaseAwake();
     beep(1046, 0.18, 0.4, 0); beep(1318, 0.18, 0.4, 0.22); beep(1568, 0.5, 0.4, 0.44);
     buzz([200, 100, 200, 100, 400]);
-    app.dataset.phase = "done"; flash();
     render();
     if (!reduceMotion()) prog.animate([{ strokeDashoffset: C }, { strokeDashoffset: 0 }], { duration: 900, easing: EASE });
   }
