@@ -1,4 +1,4 @@
-const CACHE = "tabatime-v6";
+const CACHE = "tabatime-v7";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,14 +24,6 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-
-  // Polices Google : cache d'abord, puis réseau
-  if (url.hostname.endsWith("fonts.googleapis.com") || url.hostname.endsWith("fonts.gstatic.com")) {
-    e.respondWith(
-      caches.open(CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { c.put(req, res.clone()); return res; })))
-    );
-    return;
-  }
 
   // Fichiers de l'appli : réseau d'abord (pour les mises à jour), cache si hors ligne
   if (url.origin === self.location.origin) {
