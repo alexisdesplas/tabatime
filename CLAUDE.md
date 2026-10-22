@@ -13,9 +13,6 @@ Timer d'intervalles pour la corde à sauter, en appli web installable (PWA) sur 
 - Dépôt GitHub public : https://github.com/alexisdesplas/tabatime (branche `main`, remote `origin`).
 - GitHub Pages activé (branche `main`, racine `/`) : https://alexisdesplas.github.io/tabatime/
 
-## Propositions en cours
-- `apple/index.html` : proposition « style Apple » demandée par Alexis le 22/10/2026, servie sur https://alexisdesplas.github.io/tabatime/apple/. Même moteur JS que `index.html` (copié puis patché par script, pas de code partagé), habillage différent : noir OLED, polices système SF Pro (chiffres fins 200, grand titre 34 pt), anneau épais avec piste translucide (anneaux Activité), boutons ronds avec liseré (app Horloge), couleurs système iOS (jaune `#ffd60a`, rose Move `#ff375f`, vert `#30d158`), réglages en feuille montante avec contrôle segmenté et liste groupée. Pas encore tranché : si elle est retenue, elle remplace `index.html` ; sinon, supprimer le dossier.
-
 ## Prochaines étapes
 1. Ouvrir https://alexisdesplas.github.io/tabatime/ dans Safari sur l'iPhone → Partager → « Sur l'écran d'accueil ».
 
@@ -23,11 +20,10 @@ Timer d'intervalles pour la corde à sauter, en appli web installable (PWA) sur 
 - Cible : iPhone (Safari). `navigator.vibrate` n'existe pas sur iOS ; les bips passent par Web Audio et ne démarrent qu'après un tap (bouton Go). Le mode silencieux peut couper le son.
 - À chaque mise à jour, incrémenter `CACHE` dans `sw.js` (ex. `tabatime-v2`) pour que le téléphone récupère la nouvelle version.
 - Tester en local : `python3 -m http.server` puis http://localhost:8000.
-- Couleurs : effort `#ff5a36`, repos `#2fc4b2`, préparation `#f2c230`, fond `#121417`. Polices : Big Shoulders Display (chiffres/titres) et Archivo (texte).
-- Deux états d'écran pilotés par des attributs sur `<html>` : `data-phase` (prep/work/rest/done) et `data-lit`. Le fond reste sombre ; quand le timer tourne (`data-lit`), `--ground` et `--surface` se teintent à 12 % de la couleur de phase via `color-mix` (retenue voulue : Alexis a trouvé les aplats de couleur pleins agressifs, décision du 22/10/2026). En pause, fond neutre `#121417`. Un seul accent à l'écran : la couleur de phase (anneau, libellé, bouton Go). La barre de rounds en haut est bord à bord, sous la zone sûre : c'est la seule rupture de grille, et son remplissage est en encre claire, pas en couleur.
-- Pas de traits : boutons et pastille de réglages séparés du fond par un pas de ton (`--surface`), jamais par une bordure.
-- Interface en français. Détail métier sur la ligne du bas : l'heure de fin de séance (« fin 17:32 ») pendant que ça tourne.
-- Mouvement : courbes `--ease-out` / `--ease-in-out` dans `:root`, durées 120–320 ms, transform/opacité/couleur. Un seul moment signature : la teinte du fond et la couleur de l'anneau qui basculent à chaque phase (320 ms). Les 3 dernières secondes font pulser les chiffres ; la fin dessine l'anneau. `prefers-reduced-motion` coupe les transforms, garde les fondus.
-- État pause : l'écran s'éteint (`data-lit` retiré) et `data-paused` sur `.app` atténue anneau et centre à 50 %, « En pause » sous l'anneau. `meta[name=theme-color]` suit la teinte du fond (`GROUND` dans le JS, même mélange que le CSS).
+- Style « Apple », retenu par Alexis le 22/10/2026 à la place de la version Big Shoulders / Archivo. Noir OLED `#000`, surfaces iOS `#1c1c1e` / `#2c2c2e`, texte secondaire `#8e8e93`, bleu système `#0a84ff` pour les actions de la feuille. Couleurs de phase : préparation jaune `#ffd60a`, effort rose Move `#ff375f`, repos et fin vert `#30d158`. Polices système uniquement (SF Pro via `-apple-system`), aucune police web.
+- Composition : grand titre iOS 34 pt à gauche avec le mode et le réglage en sous-titre gris, bouton rond de réglages à droite, barre de rounds fine en couleur de phase. Anneau épais (11) avec piste de la même teinte à 20 %, comme les anneaux Activité. Chiffres en graisse 200, très grands, comme le minuteur de l'app Horloge. Trois boutons ronds en bas avec liseré séparé par un filet noir (Horloge) ; Démarrer est plus grand et teinté de la couleur de phase à 26 %.
+- Réglages : feuille qui monte du bas (`dialog`, courbe `--sheet`), poignée, Annuler / OK en bleu système, contrôle segmenté pour le mode, liste groupée avec séparateurs iOS d'un demi-pixel, steppers iOS.
+- Interface en français. Détail métier : l'heure de fin de séance (« fin 17:32 ») sur la ligne du bas pendant que ça tourne.
+- Mouvement : courbes `--ease` (iOS) et `--sheet` (feuille) dans `:root`, transform/opacité/couleur. Les 3 dernières secondes font pulser les chiffres ; la fin dessine l'anneau. `prefers-reduced-motion` coupe les transforms, garde les fondus.
+- État pause : `data-paused` sur `.app` atténue anneau et centre à 40 %, « En pause » sous l'anneau. `data-phase` sur `<html>` pilote la couleur de phase ; `meta[name=theme-color]` reste `#000000`.
 - Steppers des réglages : un tap = un pas, maintien appuyé = répétition (pointerdown + setInterval). Le `click` ne sert qu'au clavier (`e.detail === 0`).
-- Détecteur Impeccable : un faux positif « low-contrast » persiste (il croise la couleur de texte de `#go` avec le fond de survol de `.ctl`, que `#go` ne reçoit jamais : `:not(#go)` + spécificité de l'id).
