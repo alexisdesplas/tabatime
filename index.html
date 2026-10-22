@@ -31,39 +31,15 @@
   --ease-in-out: cubic-bezier(.77, 0, .175, 1);
   color-scheme: dark;
 
-  /* État éteint (repos, pause) : fond sombre, accents couleur de phase */
   --phase: var(--prep);
   --ground: var(--bg);
   --surface-hover: #242930;
-  --phase-text: var(--phase);
-  --ring: var(--phase);
-  --ring-track: var(--surface);
-  --bar-fill: var(--work);
-  --go-bg: var(--phase);
-  --go-fg: #121417;
 }
 html[data-phase="work"] { --phase: var(--work); }
 html[data-phase="rest"], html[data-phase="done"] { --phase: var(--rest); }
-
-/* État allumé (timer en marche, fin) : tout l'écran prend la couleur de la phase, le contenu passe en encre */
-html[data-lit] {
-  --ground: var(--phase);
-  --fg: #121417;
-  --muted: var(--ink2);
-  --surface: rgba(18, 20, 23, .12);
-  --surface-hover: rgba(18, 20, 23, .2);
-  --line: rgba(18, 20, 23, .22);
-  --phase-text: #121417;
-  --ring: #121417;
-  --ring-track: rgba(18, 20, 23, .16);
-  --bar-fill: #121417;
-  --go-bg: #121417;
-  --go-fg: var(--phase);
-}
-html[data-lit][data-phase="prep"] { --ink2: #4a3806; }
-html[data-lit][data-phase="work"] { --ink2: #4a1408; }
-html[data-lit][data-phase="rest"], html[data-lit][data-phase="done"] { --ink2: #073a34; }
-.app ::selection { background: var(--fg); color: var(--ground); }
+/* Timer en marche : le fond se teinte à peine de la phase. En pause : fond neutre. */
+html[data-lit] { --ground: color-mix(in srgb, var(--bg) 88%, var(--phase)); --surface: color-mix(in srgb, #1c2025 88%, var(--phase)); --surface-hover: color-mix(in srgb, #242930 88%, var(--phase)); }
+.app ::selection { background: var(--phase); color: #121417; }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--ground); transition: background-color 320ms var(--ease-out); }
@@ -81,32 +57,32 @@ body {
   padding-block: 20px 24px;
 }
 
-header { display: flex; flex-direction: column; gap: 12px; }
+header { display: flex; flex-direction: column-reverse; gap: 14px; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .title { font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .02em; text-transform: uppercase; margin: 0; }
 .spec-btn {
   display: inline-flex; align-items: center; gap: 8px;
-  background: none; border: 1px solid var(--line); border-radius: 999px;
-  color: var(--muted); padding: 9px 12px; font: 600 .85rem/1 var(--body);
+  background: var(--surface); border: 0; border-radius: 999px;
+  color: var(--muted); padding: 10px 13px; font: 600 .85rem/1 var(--body);
   font-variant-numeric: tabular-nums; cursor: pointer;
   transition: transform 160ms var(--ease-out), color 320ms var(--ease-out), border-color 320ms var(--ease-out);
 }
 .spec-btn:active { transform: scale(.96); }
-@media (hover: hover) and (pointer: fine) { .spec-btn:hover { color: var(--fg); border-color: var(--muted); } }
+@media (hover: hover) and (pointer: fine) { .spec-btn:hover { color: var(--fg); background: var(--surface-hover); } }
 .spec-btn svg { width: 14px; height: 14px; flex: none; }
-.rounds { display: grid; gap: 6px; }
-.rounds span { height: 8px; border-radius: 4px; background: var(--line); position: relative; overflow: hidden; transition: background-color 320ms var(--ease-out); }
-.rounds span i { position: absolute; inset: 0; width: 0; background: var(--bar-fill); transition: background-color 320ms var(--ease-out); }
+.rounds { display: grid; gap: 4px; margin-top: -20px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))) calc(-1 * max(16px, env(safe-area-inset-right, 0px))); }
+.rounds span { height: 5px; background: var(--surface); position: relative; overflow: hidden; transition: background-color 320ms var(--ease-out); }
+.rounds span i { position: absolute; inset: 0; width: 0; background: var(--fg); opacity: .85; }
 .rounds span.done i { width: 100%; }
 
-main { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 0; }
+main { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: 0; }
 .ring-wrap { position: relative; width: min(82vw, 52vh, 380px); aspect-ratio: 1; max-width: 100%; }
 .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
-.track { fill: none; stroke: var(--ring-track); stroke-width: 7; transition: stroke 320ms var(--ease-out); }
-.prog { fill: none; stroke: var(--ring); stroke-width: 7; stroke-linecap: round; transition: stroke 320ms var(--ease-out), opacity 200ms var(--ease-out); }
+.track { fill: none; stroke: var(--surface); stroke-width: 7; transition: stroke 320ms var(--ease-out); }
+.prog { fill: none; stroke: var(--phase); stroke-width: 7; stroke-linecap: round; transition: stroke 320ms var(--ease-out), opacity 200ms var(--ease-out); }
 .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: opacity 200ms var(--ease-out); }
 .app[data-paused] .prog, .app[data-paused] .center { opacity: .5; }
-.phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase-text); transition: color 320ms var(--ease-out); }
+.phase { font-family: var(--display); font-weight: 900; font-size: clamp(1.6rem, 7vw, 2.4rem); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color 320ms var(--ease-out); }
 .time { font-family: var(--display); font-weight: 900; line-height: .9; font-size: clamp(5rem, 26vw, 9rem); font-variant-numeric: tabular-nums; will-change: transform; }
 .sub { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; text-align: center; transition: color 320ms var(--ease-out); }
 .next { color: var(--muted); font-size: .85rem; text-align: center; min-height: 1.3em; transition: color 320ms var(--ease-out); }
@@ -116,19 +92,19 @@ footer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; }
 button { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; touch-action: manipulation; }
 .ctl {
   font: 600 1rem/1 var(--body); color: var(--fg); background: var(--surface);
-  border: 1px solid var(--line); border-radius: 14px; padding: 20px 8px; cursor: pointer;
-  transition: transform 160ms var(--ease-out), background-color 320ms var(--ease-out), border-color 320ms var(--ease-out), color 320ms var(--ease-out), opacity 200ms var(--ease-out);
+  border: 0; border-radius: 14px; padding: 19px 8px 21px; cursor: pointer;
+  transition: transform 160ms var(--ease-out), background-color 320ms var(--ease-out), color 320ms var(--ease-out), opacity 200ms var(--ease-out);
 }
 .ctl:active { transform: scale(.97); }
 @media (hover: hover) and (pointer: fine) { .ctl:hover:not(:disabled):not(#go) { background: var(--surface-hover); } #go:hover:not(:disabled) { filter: brightness(1.08); } }
-button:focus-visible, input:focus-visible { outline: 3px solid var(--phase-text); outline-offset: 2px; }
-#go { background: var(--go-bg); color: var(--go-fg); border-color: transparent; font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--phase); outline-offset: 2px; }
+#go { background: var(--phase); color: #121417; font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: .06em; text-transform: uppercase; }
 .ctl:disabled { opacity: .35; cursor: default; transform: none; }
 .total { text-align: center; color: var(--muted); font-size: .8rem; grid-column: 1 / -1; font-variant-numeric: tabular-nums; transition: color 320ms var(--ease-out); }
 
 /* Réglages */
 dialog {
-  --fg: #f3f1ec; --muted: #8d949c; --surface: #1c2025; --line: #2c3239; --surface-hover: #242930;
+  --surface: #1c2025; --surface-hover: #242930;
   border: 0; border-radius: 20px; background: var(--surface); color: var(--fg);
   width: min(420px, calc(100vw - 32px)); padding: 20px; font-family: var(--body);
   max-height: calc(100vh - 32px); overflow: auto;
@@ -164,8 +140,8 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
 @media (hover: hover) and (pointer: fine) { .stepper button:hover { background: var(--line); } }
 .stepper output { min-width: 56px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
 .dlg-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 14px; }
-.dlg-actions .ctl { padding: 16px 8px; }
-.dlg-actions .primary { background: var(--work); color: #121417; border-color: transparent; }
+.dlg-actions .ctl { padding: 15px 8px 17px; background: var(--bg); }
+.dlg-actions .primary { background: var(--work); color: #121417; }
 
 @media (prefers-reduced-motion: reduce) {
   .prog, .phase, #go, .ctl, .spec-btn, .stepper button, .modes .pill, .modes button { transition: none; }
@@ -271,13 +247,14 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
   prog.style.strokeDasharray = C;
   const EASE = "cubic-bezier(.23, 1, .32, 1)";
   const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const PHASE_COLOR = { prep: "#f2c230", work: "#ff5a36", rest: "#2fc4b2", done: "#2fc4b2" };
-  // L'écran entier prend la couleur de la phase ; il ne s'éteint qu'en pause
+  // Fond teinté à 12 % de la phase quand ça tourne (même mélange que le CSS), neutre en pause
+  const GROUND = { prep: "#2c261a", work: "#2e1c1b", rest: "#152828", done: "#152828" };
   function paint(type, lit) {
     root.dataset.phase = type;
     root.toggleAttribute("data-lit", lit);
-    themeMeta.content = lit ? PHASE_COLOR[type] : "#121417";
+    themeMeta.content = lit ? GROUND[type] : "#121417";
   }
+  const endsAt = secs => { const d = new Date(Date.now() + secs * 1000); return d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"); };
 
   const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 
@@ -419,7 +396,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: grid; }
 
     totalEl.textContent = m === "series"
       ? `Série ${Math.min(nSets, setsDone() + (p.untimed ? 1 : 0))} / ${nSets} · repos cumulé ${fmt(TOTAL)}`
-      : `Durée totale ${fmt(TOTAL)} · reste ${fmt(TOTAL - elapsedTotal())}`;
+      : `Durée totale ${fmt(TOTAL)} · reste ${fmt(TOTAL - elapsedTotal())}` + (running ? ` · fin ${endsAt(TOTAL - elapsedTotal())}` : "");
     go.textContent = running ? (p.untimed ? "Fait" : "Pause") : (started ? "Reprendre" : "Go");
     go.disabled = false;
   }

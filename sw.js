@@ -1,4 +1,4 @@
-const CACHE = "tabatime-v5";
+const CACHE = "tabatime-v6";
 const ASSETS = [
   "./",
   "./index.html",
