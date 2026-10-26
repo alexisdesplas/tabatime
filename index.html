@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Tabatime</title>
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0f1016">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,148 +12,195 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-/* Proposition « Apple » : noir OLED, SF Pro, anneau Activité, boutons ronds Horloge, feuille de réglages iOS */
+/* Design system Hardwood, mode « Indigo DT » : fond bleu nuit, accent indigo, Inter */
+@font-face {
+  font-family: "Inter"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(fonts/inter-latin.woff2) format("woff2");
+}
 :root {
-  --bg: #000;
-  --surface: #1c1c1e;
-  --surface2: #2c2c2e;
-  --fill: #3a3a3c;
-  --separator: rgba(84, 84, 88, .65);
-  --label: #fff;
-  --secondary: #8e8e93;
-  --tint: #0a84ff;
-  --prep: #ffd60a;   /* systemYellow */
-  --work: #ff375f;   /* rose Move */
-  --rest: #30d158;   /* systemGreen */
+  --bg: #0f1016;           /* fond/page */
+  --card: #1a1b24;         /* fond/carte */
+  --subtle: #22232e;       /* fond/discret */
+  --line: #2e303d;         /* bord/discret */
+  --line-strong: #636883;  /* bord/base */
+  --strong: #f5f6fa;       /* texte/fort */
+  --text: #c9ccd8;         /* texte/base */
+  --muted: #9da1b8;        /* texte/discret */
+  --inverse: #15161e;      /* texte/inverse */
+  --accent: #b3bcff;       /* accent/texte */
+  --accent-soft: #262b4d;  /* accent/soft */
+  --prep: #ffa24d;         /* etat/attention */
+  --work: #ff7a88;         /* etat/danger */
+  --rest: #4ade80;         /* etat/succes */
   --phase: var(--prep);
-  --text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
-  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --ease: cubic-bezier(.25, .1, .25, 1);
-  --sheet: cubic-bezier(.32, .72, 0, 1);
+  --push: cubic-bezier(.32, .72, 0, 1);
   color-scheme: dark;
 }
 html[data-phase="work"] { --phase: var(--work); }
 html[data-phase="rest"], html[data-phase="done"] { --phase: var(--rest); }
-::selection { background: var(--phase); color: #000; }
+::selection { background: var(--accent); color: var(--inverse); }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; background: var(--bg); }
 html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 body {
-  color: var(--label); font-family: var(--text); -webkit-font-smoothing: antialiased;
-  padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
+  color: var(--strong); font-family: var(--font); -webkit-font-smoothing: antialiased;
   overflow: hidden; -webkit-user-select: none; user-select: none; overscroll-behavior: none;
 }
-.app { height: 100%; max-width: 430px; margin: 0 auto; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; padding-block: 10px 18px; }
+button { font-family: inherit; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tnum { font-variant-numeric: tabular-nums; }
 
-/* En-tête : grand titre iOS, sous-titre gris, bouton rond de réglages */
+/* Écran séance */
+.app {
+  height: 100%; max-width: 430px; margin: 0 auto; display: grid; grid-template-rows: auto 1fr auto; gap: 12px;
+  padding: 10px max(20px, env(safe-area-inset-right, 0px)) 18px max(20px, env(safe-area-inset-left, 0px));
+  transition: transform 350ms var(--push), opacity 350ms var(--push);
+}
+.app.behind { transform: translateX(-28%); opacity: .4; }
 header { display: flex; flex-direction: column; gap: 16px; }
 .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
-.title { margin: 0; font: 700 34px/1.15 var(--display); letter-spacing: -.012em; }
-.subtitle { color: var(--secondary); font: 400 15px/1.3 var(--text); font-variant-numeric: tabular-nums; margin-top: 2px; }
-.spec-btn { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--surface); color: var(--label); display: grid; place-items: center; cursor: pointer; transition: transform 120ms var(--ease), background-color 150ms; }
-.spec-btn:active { transform: scale(.92); background: var(--surface2); }
+.title { margin: 0; font: 600 28px/32px var(--font); letter-spacing: -.01em; }
+.subtitle { color: var(--muted); font: 400 14px/20px var(--font); margin-top: 9px; }
+.spec-btn { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--card); color: var(--strong); display: grid; place-items: center; cursor: pointer; transition: transform 120ms var(--ease), background-color 150ms; }
+.spec-btn:active { transform: scale(.92); background: var(--subtle); }
 .spec-btn svg { width: 18px; height: 18px; }
 .rounds { display: grid; gap: 3px; }
-.rounds span { height: 4px; border-radius: 2px; background: var(--surface2); position: relative; overflow: hidden; }
+.rounds span { height: 4px; border-radius: 2px; background: var(--line); position: relative; overflow: hidden; }
 .rounds span i { position: absolute; inset: 0; width: 0; background: var(--phase); transition: background-color 300ms var(--ease); }
 .rounds span.done i { width: 100%; }
 
-/* Anneau Activité : trait épais, piste translucide de la même teinte */
+/* Anneau : trait épais, piste sombre de la même teinte */
 main { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; min-height: 0; }
 .ring-wrap { position: relative; width: min(80vw, 50vh, 340px); aspect-ratio: 1; max-width: 100%; }
 .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
-.track { fill: none; stroke: var(--phase); stroke-opacity: .2; stroke-width: 11; transition: stroke 300ms var(--ease); }
+.track { fill: none; stroke: color-mix(in srgb, var(--phase) 18%, var(--bg)); stroke-width: 11; transition: stroke 300ms var(--ease); }
 .prog { fill: none; stroke: var(--phase); stroke-width: 11; stroke-linecap: round; transition: stroke 300ms var(--ease), opacity 200ms var(--ease); }
-.center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: opacity 200ms var(--ease); }
-.app[data-paused] .prog, .app[data-paused] .center { opacity: .4; }
-.phase { font: 600 13px/1 var(--text); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color 300ms var(--ease); }
-.time { font: 200 clamp(64px, 22vw, 96px)/1 var(--display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; will-change: transform; }
-.sub { color: var(--secondary); font: 400 15px/1.3 var(--text); text-align: center; font-variant-numeric: tabular-nums; }
-.next { color: var(--secondary); font: 400 15px/1.3 var(--text); text-align: center; min-height: 1.3em; }
-.next b { color: var(--label); font-weight: 600; }
+.center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: opacity 200ms var(--ease); }
+.app[data-paused] .prog, .app[data-paused] .center { opacity: .5; }
+.phase { font: 500 11px/16px var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--phase); transition: color 300ms var(--ease); }
+.time { font: 700 clamp(52px, 16.4vw, 72px)/1 var(--font); letter-spacing: -.03em; font-variant-numeric: tabular-nums; will-change: transform; }
+.sub { color: var(--muted); font: 400 14px/20px var(--font); text-align: center; font-variant-numeric: tabular-nums; }
+.next { color: var(--muted); font: 400 14px/20px var(--font); text-align: center; min-height: 20px; font-variant-numeric: tabular-nums; }
+.next b { color: var(--strong); font-weight: 600; }
 
-/* Boutons ronds comme Horloge : disque, liseré fin séparé par 2 px de noir */
-footer { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; }
-button { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; touch-action: manipulation; }
-.ctl {
-  width: 80px; height: 80px; border-radius: 50%; border: 0; background: var(--surface); color: var(--label);
-  font: 400 16px/1 var(--text); cursor: pointer;
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--surface);
-  transition: transform 120ms var(--ease), background-color 300ms var(--ease), color 300ms var(--ease), box-shadow 300ms var(--ease), opacity 200ms;
+/* Commandes : boutons Hardwood lg (48), primaire au centre */
+footer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.btn {
+  height: 48px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--card); color: var(--accent);
+  font: 500 14px/20px var(--font); cursor: pointer;
+  transition: transform 120ms var(--ease), background-color 200ms var(--ease), color 200ms var(--ease), border-color 200ms var(--ease);
 }
-.ctl:active { transform: scale(.94); }
-.ctl:disabled { opacity: .35; transform: none; cursor: default; }
-button:focus-visible { outline: 3px solid var(--tint); outline-offset: 5px; }
-#go {
-  width: 96px; height: 96px; font-weight: 600; font-size: 17px;
-  background: color-mix(in srgb, var(--phase) 26%, transparent); color: var(--phase);
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px color-mix(in srgb, var(--phase) 26%, transparent);
-}
-.total { grid-column: 1 / -1; text-align: center; color: var(--secondary); font: 400 13px/1.3 var(--text); margin-top: 16px; font-variant-numeric: tabular-nums; }
+.btn:active { transform: scale(.97); background: var(--subtle); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--inverse); }
+.btn.primary:active { background: #9ea9ff; }
+.btn:disabled { background: var(--subtle); border-color: var(--subtle); color: var(--muted); transform: none; cursor: default; }
+.total { grid-column: 1 / -1; text-align: center; color: var(--muted); font: 400 12px/16px var(--font); margin-top: 31px; font-variant-numeric: tabular-nums; }
 
-/* Feuille de réglages iOS */
-dialog {
-  position: fixed; inset: auto 0 0 0; margin: 0 auto; width: 100%; max-width: 430px; max-height: 92vh; overflow: auto;
-  border: 0; border-radius: 12px 12px 0 0; padding: 0 0 max(20px, env(safe-area-inset-bottom, 0px));
-  background: var(--surface); color: var(--label); font-family: var(--text);
-  transform: translateY(100%);
-  transition: transform 300ms var(--sheet), overlay 300ms allow-discrete, display 300ms allow-discrete;
+/* Écran Réglages : poussé depuis la droite, comme une pile iOS */
+.settings {
+  position: fixed; inset: 0; z-index: 5; background: var(--bg); display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px);
+  transform: translateX(100%); visibility: hidden;
+  transition: transform 350ms var(--push), visibility 0s 350ms;
 }
-dialog[open] { transform: none; transition-duration: 420ms; }
-@starting-style { dialog[open] { transform: translateY(100%); } }
-dialog::backdrop { background: rgba(0,0,0,0); transition: background 300ms var(--ease), overlay 300ms allow-discrete, display 300ms allow-discrete; }
-dialog[open]::backdrop { background: rgba(0,0,0,.5); transition-duration: 420ms; }
-@starting-style { dialog[open]::backdrop { background: rgba(0,0,0,0); } }
-.grabber { width: 36px; height: 5px; border-radius: 3px; background: #5e5e63; margin: 6px auto 0; }
-.sheet-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 16px 6px; }
-.sheet-head h2 { margin: 0; font: 600 17px/1.3 var(--text); text-align: center; }
-.sheet-head button { border: 0; background: none; color: var(--tint); font: 400 17px/1 var(--text); padding: 8px 0; cursor: pointer; }
-.sheet-head button:first-child { justify-self: start; }
-.sheet-head button:last-child { justify-self: end; font-weight: 600; }
-.sheet-head button:active { opacity: .5; }
-.sheet-body { padding: 8px 16px 0; display: grid; gap: 22px; }
-.modes { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface2); border-radius: 9px; padding: 2px; }
-.modes .pill { position: absolute; top: 2px; left: 2px; height: calc(100% - 4px); width: calc((100% - 4px) / 3); border-radius: 7px; background: #636366; box-shadow: 0 3px 8px rgba(0,0,0,.14), 0 3px 1px rgba(0,0,0,.04); transition: transform 240ms var(--ease); }
-.modes button { position: relative; z-index: 1; border: 0; background: none; color: var(--label); font: 500 13px/1 var(--text); padding: 9px 4px; cursor: pointer; border-radius: 7px; }
-.modes button[aria-pressed="true"] { font-weight: 600; }
-.group { background: var(--surface2); border-radius: 10px; overflow: hidden; }
-.hint { color: var(--secondary); font: 400 13px/1.35 var(--text); margin: -14px 16px 0; }
-.field { display: none; position: relative; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 16px; min-height: 52px; }
-.field.always { display: flex; }
-dialog[data-mode="tabata"] .field[data-mode~="tabata"],
-dialog[data-mode="emom"] .field[data-mode~="emom"],
-dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
-.field + .field::before { content: ""; position: absolute; left: 16px; right: 0; top: 0; height: 1px; background: var(--separator); transform: scaleY(.5); transform-origin: top; }
-.field label { font: 400 17px/1.3 var(--text); }
-.field small { display: block; color: var(--secondary); font-size: 13px; margin-top: 1px; }
-.stepper { display: flex; align-items: center; gap: 14px; }
-.stepper output { color: var(--secondary); font: 400 17px/1 var(--text); font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; }
-.stepper .btns { display: flex; background: var(--fill); border-radius: 8px; overflow: hidden; }
-.stepper .btns button { width: 46px; height: 32px; border: 0; background: none; color: var(--label); font: 400 20px/1 var(--text); cursor: pointer; transition: background-color 120ms; }
-.stepper .btns button + button { border-left: 1px solid rgba(0,0,0,.35); }
-.stepper .btns button:active { background: rgba(255,255,255,.14); }
-.row-btn { display: block; width: 100%; border: 0; background: var(--surface2); color: var(--tint); font: 400 17px/1.3 var(--text); padding: 12px 16px; text-align: center; border-radius: 10px; cursor: pointer; }
-.row-btn:active { background: var(--fill); }
+.settings.open { transform: none; visibility: visible; transition: transform 350ms var(--push), visibility 0s; }
+.navbar { flex: none; display: flex; align-items: center; height: 56px; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+.navbar .side { flex: none; width: 112px; display: flex; }
+.navbar .side:last-child { justify-content: flex-end; }
+.navbar button { height: 48px; border: 0; background: none; color: var(--accent); font: 400 16px/24px var(--font); padding: 0 8px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.navbar button:active { opacity: .5; }
+#back { padding-left: 0; }
+#back svg { width: 20px; height: 20px; }
+#save { font-weight: 500; }
+.navtitle { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; }
+.navtitle h2 { margin: 0; font: 600 16px/24px var(--font); }
+.navtitle div { color: var(--muted); font: 400 12px/16px var(--font); text-overflow: ellipsis; overflow: hidden; }
+.content {
+  flex: 1; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  width: 100%; max-width: 430px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.mode-group { display: grid; gap: 8px; }
+.modes { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; height: 36px; padding: 3px 2px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.modes .pill { position: absolute; top: 3px; left: 2px; height: 28px; width: calc((100% - 16px) / 3); border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--accent); transition: transform 240ms var(--ease); }
+.modes button { position: relative; z-index: 1; border: 0; background: none; color: var(--muted); font: 500 14px/20px var(--font); border-radius: 8px; cursor: pointer; transition: color 200ms var(--ease); }
+.modes button[aria-pressed="true"] { color: var(--strong); font-weight: 600; }
+.hint { margin: 0; color: var(--muted); font: 400 12px/16px var(--font); }
+
+/* Sélecteur à roues : 40 px par ligne, la ligne du milieu est la valeur choisie */
+.picker { background: var(--card); border-radius: 12px; padding: 16px; display: grid; gap: 8px; }
+.cols, .wheels { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.cols span { text-align: center; color: var(--muted); font: 500 12px/16px var(--font); }
+.wheels { position: relative; }
+.wheels::before { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 20px); height: 40px; border-radius: 12px; background: var(--accent-soft); pointer-events: none; }
+.wheel {
+  position: relative; height: calc(var(--rows) * 40px); padding-block: calc((var(--rows) - 1) * 20px);
+  overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none; border-radius: 12px; cursor: grab;
+}
+.wheel::-webkit-scrollbar { display: none; }
+.opt {
+  height: 40px; display: grid; place-items: center; scroll-snap-align: center;
+  font: 400 20px/24px var(--font); font-variant-numeric: tabular-nums; color: var(--muted);
+  opacity: .2; transform: scale(.7); transition: transform 120ms var(--ease), opacity 120ms var(--ease), color 120ms var(--ease);
+}
+.opt[data-d="0"] { opacity: 1; transform: none; color: var(--strong); font-weight: 600; }
+.opt[data-d="1"] { opacity: .7; transform: scale(.8); color: var(--text); }
+.opt[data-d="2"] { opacity: .4; transform: scale(.7); }
+
+/* Aperçu de la séance */
+.preview { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 12px; }
+.figure { display: grid; gap: 4px; }
+.figure small { color: var(--muted); font: 400 12px/16px var(--font); }
+.figure strong { font: 700 44px/44px var(--font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.figure span { color: var(--text); font: 400 13px/20px var(--font); }
+.frieze { display: flex; gap: 2px; height: 8px; }
+.frieze i { flex: var(--w) 1 0; min-width: 0; border-radius: 2px; background: var(--c); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.legend span { display: flex; align-items: center; gap: 4px; color: var(--text); font: 400 12px/16px var(--font); font-variant-numeric: tabular-nums; }
+.legend span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.ghost { height: 40px; border: 0; border-radius: 8px; background: none; color: var(--accent); font: 500 13px/20px var(--font); cursor: pointer; }
+.ghost:active { background: var(--card); }
+
+/* Lancement : écran vide, puis le lettrage apparaît */
+.launch { position: fixed; inset: 0; z-index: 10; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding-bottom: 40px; transition: opacity 320ms var(--ease); }
+.launch h1 { margin: 0; font: 700 56px/56px var(--font); letter-spacing: -.03em; }
+.launch p { margin: 0; color: var(--muted); font: 400 14px/20px var(--font); }
+.launch > * { opacity: 0; transform: translateY(8px); animation: rise 480ms var(--push) 150ms forwards; }
+.launch p { animation-delay: 230ms; }
+.launch.gone { opacity: 0; pointer-events: none; }
+@keyframes rise { to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .ctl, .spec-btn, .modes .pill, .rounds span i, .prog, .track, .phase { transition: none; }
-  dialog, dialog::backdrop { transition: opacity 120ms, background 120ms, overlay 120ms allow-discrete, display 120ms allow-discrete; transform: none; }
-  .ctl:active, .spec-btn:active { transform: none; }
+  .btn, .spec-btn, .modes .pill, .rounds span i, .prog, .track, .phase, .opt { transition: none; }
+  .btn:active, .spec-btn:active { transform: none; }
+  .app, .app.behind { transform: none; }
+  .settings { transform: none; opacity: 0; transition: opacity 150ms, visibility 0s 150ms; }
+  .settings.open { opacity: 1; transition: opacity 150ms, visibility 0s; }
+  .launch > * { transform: none; animation-name: fade; }
+  @keyframes fade { to { opacity: 1; } }
 }
 </style>
 </head>
 <body>
+<div class="launch" id="launch" aria-hidden="true">
+  <h1>Tabatime</h1>
+  <p>Tabata · EMOM · Séries</p>
+</div>
+
 <div class="app" id="app">
   <header>
     <div class="top">
       <div>
-        <h1 class="title">Tabatime</h1>
-        <div class="subtitle" id="spec">Tabata · 6 × 1:00 / 0:30</div>
+        <h1 class="title" id="title">Tabata</h1>
+        <div class="subtitle tnum" id="spec">6 × 1:00 / 0:30</div>
       </div>
       <button class="spec-btn" id="openSettings" type="button" aria-label="Réglages">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 5.25h7.5M13.5 5.25H15M3 12.75h3M9 12.75h6"/><circle cx="12" cy="5.25" r="1.65"/><circle cx="7.5" cy="12.75" r="1.65"/></svg>
       </button>
     </div>
     <div class="rounds" id="rounds" aria-label="Progression des rounds"></div>
@@ -167,7 +214,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
       </svg>
       <div class="center">
         <div class="phase" id="phase">Prêt</div>
-        <div class="time" id="time">0:10</div>
+        <div class="time" id="time">0:30</div>
         <div class="sub" id="sub">Round 1 / 6</div>
       </div>
     </div>
@@ -175,60 +222,54 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
   </main>
 
   <footer>
-    <button class="ctl" id="reset" type="button">Reset</button>
-    <button class="ctl" id="go" type="button">Démarrer</button>
-    <button class="ctl" id="skip" type="button">Passer</button>
+    <button class="btn" id="reset" type="button">Reset</button>
+    <button class="btn primary" id="go" type="button">Démarrer</button>
+    <button class="btn" id="skip" type="button">Passer</button>
     <div class="total" id="total"></div>
   </footer>
 </div>
 
-<dialog id="settings" data-mode="tabata">
-  <div class="grabber" aria-hidden="true"></div>
-  <div class="sheet-head">
-    <button type="button" id="cancelSettings">Annuler</button>
-    <h2>Réglages</h2>
-    <button type="button" id="saveSettings">OK</button>
+<section class="settings" id="settings" aria-labelledby="settingsTitle" inert>
+  <nav class="navbar">
+    <div class="side"><button type="button" id="back" aria-label="Retour à Séance"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4 6.5 10l6 6"/></svg>Séance</button></div>
+    <div class="navtitle"><h2 id="settingsTitle">Réglages</h2><div class="tnum" id="draftSpec"></div></div>
+    <div class="side"><button type="button" id="save">OK</button></div>
+  </nav>
+  <div class="content">
+    <div class="mode-group">
+      <div class="modes" id="modes" aria-label="Mode">
+        <i class="pill" id="pill" aria-hidden="true"></i>
+        <button type="button" data-mode="tabata" aria-pressed="true">Tabata</button>
+        <button type="button" data-mode="emom" aria-pressed="false">EMOM</button>
+        <button type="button" data-mode="series" aria-pressed="false">Séries</button>
+      </div>
+      <p class="hint" id="hint"></p>
+    </div>
+    <div class="picker" id="pickMain"></div>
+    <div class="preview" id="preview">
+      <div class="figure"><small id="pvLabel">Durée totale</small><strong id="pvValue">9:00</strong><span class="tnum" id="pvDetail"></span></div>
+      <div class="frieze" id="frieze" aria-hidden="true"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="picker" id="pickMore"></div>
+    <button class="ghost" type="button" id="defaults">Rétablir les valeurs par défaut</button>
   </div>
-  <div class="sheet-body">
-    <div class="modes" id="modes" aria-label="Mode">
-      <i class="pill" id="pill" aria-hidden="true"></i>
-      <button type="button" data-mode="tabata" aria-pressed="true">Tabata</button>
-      <button type="button" data-mode="emom" aria-pressed="false">EMOM</button>
-      <button type="button" data-mode="series" aria-pressed="false">Séries</button>
-    </div>
-    <p class="hint" id="hint"></p>
-    <div class="group">
-    <div class="field" data-mode="tabata"><label>Rounds</label><div class="stepper" data-key="rounds" data-step="1" data-min="1" data-max="30"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="tabata"><label>Corde<small>Durée d'effort</small></label><div class="stepper" data-key="work" data-step="5" data-min="5" data-max="600" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="tabata"><label>Repos</label><div class="stepper" data-key="rest" data-step="5" data-min="0" data-max="600" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="emom"><label>Minutes<small>Nombre d'intervalles</small></label><div class="stepper" data-key="emomRounds" data-step="1" data-min="1" data-max="60"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="emom"><label>Intervalle<small>Durée de chaque minute</small></label><div class="stepper" data-key="emomEvery" data-step="10" data-min="20" data-max="300" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="emom"><label>Reps<small>Objectif par intervalle, 0 = libre</small></label><div class="stepper" data-key="emomReps" data-step="5" data-min="0" data-max="200"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="series"><label>Rounds</label><div class="stepper" data-key="serRounds" data-step="1" data-min="1" data-max="20"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="series"><label>Séries<small>Par round</small></label><div class="stepper" data-key="serSets" data-step="1" data-min="1" data-max="20"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="series"><label>Reps<small>Par série</small></label><div class="stepper" data-key="serReps" data-step="1" data-min="1" data-max="100"><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    <div class="field" data-mode="series"><label>Repos<small>Entre les séries</small></label><div class="stepper" data-key="serRest" data-step="5" data-min="0" data-max="600" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    </div>
-    <div class="group">
-    <div class="field always"><label>Préparation<small>Avant le départ</small></label><div class="stepper" data-key="prep" data-step="5" data-min="0" data-max="60" data-time><output></output><span class="btns"><button type="button" data-d="-1" aria-label="Moins">−</button><button type="button" data-d="1" aria-label="Plus">+</button></span></div></div>
-    </div>
-    <button class="row-btn" type="button" id="defaults">Rétablir les valeurs par défaut</button>
-  </div>
-</dialog>
+</section>
 
 <script>
 (() => {
   const DEFAULTS = {
     mode: "tabata",
-    rounds: 6, work: 60, rest: 30, prep: 10,
+    rounds: 6, work: 60, rest: 30, prep: 30,
     emomRounds: 10, emomEvery: 60, emomReps: 30,
     serRounds: 4, serSets: 3, serReps: 10, serRest: 30
   };
   const MODES = ["tabata", "emom", "series"];
+  const NAME = { tabata: "Tabata", emom: "EMOM", series: "Séries" };
   const HINT = {
-    tabata: "Rounds d'effort chronométrés, séparés par du repos.",
-    emom: "Every Minute On the Minute : à chaque intervalle, fais tes reps puis récupère jusqu'au suivant.",
-    series: "Séries de reps à ton rythme : appuie sur Fait quand la série est finie, le repos démarre."
+    tabata: "Rounds d'effort séparés par du repos.",
+    emom: "Tes reps au top de chaque minute, puis récup.",
+    series: "Tu appuies sur Fait, le repos démarre."
   };
   const KEY = "tabatime-settings";
   let cfg = { ...DEFAULTS };
@@ -238,57 +279,55 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
   const $ = id => document.getElementById(id);
   const app = $("app"), timeEl = $("time"), phaseEl = $("phase"), subEl = $("sub"),
         nextEl = $("next"), totalEl = $("total"), go = $("go"), prog = $("prog"), roundsEl = $("rounds"),
-        root = document.documentElement, themeMeta = document.querySelector('meta[name="theme-color"]');
-  const C = 2 * Math.PI * 45;
+        root = document.documentElement;
+  const C = 2 * Math.PI * 44;
   prog.style.strokeDasharray = C;
   const EASE = "cubic-bezier(.23, 1, .32, 1)";
   const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function paint(type, lit) {
-    root.dataset.phase = type;
-    root.toggleAttribute("data-lit", lit);
-    themeMeta.content = "#000000";
-  }
   const endsAt = secs => { const d = new Date(Date.now() + secs * 1000); return d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"); };
-
   const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const plural = (n, w) => `${n} ${w}${n > 1 ? "s" : ""}`;
 
   // phases : { type: prep|work|rest, dur (s), round, set?, untimed? }
+  function makePhases(c) {
+    const ph = [];
+    if (c.prep > 0) ph.push({ type: "prep", dur: c.prep, round: 1 });
+    if (c.mode === "tabata") {
+      for (let r = 1; r <= c.rounds; r++) {
+        ph.push({ type: "work", dur: c.work, round: r });
+        if (r < c.rounds && c.rest > 0) ph.push({ type: "rest", dur: c.rest, round: r });
+      }
+    } else if (c.mode === "emom") {
+      for (let r = 1; r <= c.emomRounds; r++) ph.push({ type: "work", dur: c.emomEvery, round: r });
+    } else {
+      for (let r = 1; r <= c.serRounds; r++) for (let s = 1; s <= c.serSets; s++) {
+        ph.push({ type: "work", dur: 0, untimed: true, round: r, set: s });
+        const last = r === c.serRounds && s === c.serSets;
+        if (!last && c.serRest > 0) ph.push({ type: "rest", dur: c.serRest, round: r, set: s });
+      }
+    }
+    return ph;
+  }
+  const roundsOf = c => c.mode === "tabata" ? c.rounds : c.mode === "emom" ? c.emomRounds : c.serRounds;
+  const specOf = c => c.mode === "tabata" ? `${c.rounds} × ${fmt(c.work)} / ${fmt(c.rest)}`
+    : c.mode === "emom" ? `${c.emomRounds} × ${fmt(c.emomEvery)}`
+    : `${c.serRounds} × ${c.serSets} × ${c.serReps} / ${fmt(c.serRest)}`;
+
   let phases = [], TOTAL = 0, bars = [], nRounds = 0, workIdx = [], nSets = 0;
   function build() {
-    phases = [];
-    const m = cfg.mode;
-    let spec = "";
-    if (cfg.prep > 0) phases.push({ type: "prep", dur: cfg.prep, round: 1 });
-    if (m === "tabata") {
-      nRounds = cfg.rounds;
-      for (let r = 1; r <= nRounds; r++) {
-        phases.push({ type: "work", dur: cfg.work, round: r });
-        if (r < nRounds && cfg.rest > 0) phases.push({ type: "rest", dur: cfg.rest, round: r });
-      }
-      spec = `${nRounds} × ${fmt(cfg.work)} / ${fmt(cfg.rest)}`;
-    } else if (m === "emom") {
-      nRounds = cfg.emomRounds;
-      for (let r = 1; r <= nRounds; r++) phases.push({ type: "work", dur: cfg.emomEvery, round: r });
-      spec = `${nRounds} × ${fmt(cfg.emomEvery)}`;
-    } else {
-      nRounds = cfg.serRounds;
-      for (let r = 1; r <= nRounds; r++) for (let s = 1; s <= cfg.serSets; s++) {
-        phases.push({ type: "work", dur: 0, untimed: true, round: r, set: s });
-        const last = r === nRounds && s === cfg.serSets;
-        if (!last && cfg.serRest > 0) phases.push({ type: "rest", dur: cfg.serRest, round: r, set: s });
-      }
-      spec = `${nRounds} × ${cfg.serSets} × ${cfg.serReps} / ${fmt(cfg.serRest)}`;
-    }
+    phases = makePhases(cfg);
+    nRounds = roundsOf(cfg);
     TOTAL = phases.reduce((s, p) => s + p.dur, 0);
     nSets = phases.filter(p => p.untimed).length;
     workIdx = [];
     phases.forEach((p, i) => { if (p.type === "work") (workIdx[p.round] = workIdx[p.round] || []).push(i); });
     roundsEl.innerHTML = "";
     roundsEl.style.gridTemplateColumns = `repeat(${nRounds}, 1fr)`;
-    roundsEl.style.gap = nRounds > 40 ? "2px" : nRounds > 20 ? "3px" : "";
+    roundsEl.style.gap = nRounds > 40 ? "2px" : "";
     for (let i = 0; i < nRounds; i++) roundsEl.appendChild(Object.assign(document.createElement("span"), { innerHTML: "<i></i>" }));
     bars = [...roundsEl.children];
-    $("spec").textContent = ({ tabata: "Tabata", emom: "EMOM", series: "Séries" })[m] + " · " + spec;
+    $("title").textContent = NAME[cfg.mode];
+    $("spec").textContent = specOf(cfg);
   }
 
   function label(p) {
@@ -334,7 +373,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
   function render() {
     const m = cfg.mode;
     if (done) {
-      paint("done", true); app.removeAttribute("data-paused");
+      root.dataset.phase = "done"; app.removeAttribute("data-paused");
       phaseEl.textContent = "Terminé"; timeEl.textContent = "0:00";
       subEl.textContent = m === "emom" ? `${nRounds} minutes bouclées` : m === "series" ? `${nSets} séries bouclées` : `${nRounds} rounds bouclés`;
       nextEl.textContent = "Bien joué. Étire les mollets.";
@@ -345,7 +384,7 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
       return;
     }
     const p = phases[idx], n = phases[idx + 1];
-    paint(p.type, running || !started); // allumé dès l'ouverture, éteint seulement en pause
+    root.dataset.phase = p.type;
     app.toggleAttribute("data-paused", started && !running);
     phaseEl.textContent = label(p);
     timeEl.textContent = p.untimed ? String(cfg.serReps) : fmt(remaining / 1000);
@@ -463,48 +502,140 @@ dialog[data-mode="series"] .field[data-mode~="series"] { display: flex; }
     if (e.code === "Space" && e.target === document.body) { e.preventDefault(); onGo(); }
   });
 
-  // Réglages
-  const dlg = $("settings");
-  let draft = {};
-  const steppers = [...dlg.querySelectorAll(".stepper")];
-  const modeBtns = [...$("modes").querySelectorAll("button")], pill = $("pill");
-  function paintDraft() {
-    dlg.dataset.mode = draft.mode;
-    const mi = MODES.indexOf(draft.mode);
-    pill.style.transform = `translateX(${mi * 100}%)`;
-    modeBtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === draft.mode)));
-    $("hint").textContent = HINT[draft.mode];
-    steppers.forEach(s => { const k = s.dataset.key; s.querySelector("output").textContent = s.hasAttribute("data-time") ? fmt(draft[k]) : draft[k]; });
+  // Réglages : écran dédié, roues et aperçu de la séance
+  const range = (a, b, s = 1) => { const r = []; for (let v = a; v <= b; v += s) r.push(v); return r; };
+  const VALUES = {
+    rounds: range(1, 30), work: range(5, 600, 5), rest: range(0, 600, 5), prep: range(0, 60, 5),
+    emomRounds: range(1, 60), emomEvery: range(20, 300, 10), emomReps: range(0, 200, 5),
+    serRounds: range(1, 20), serSets: range(1, 20), serReps: range(1, 100), serRest: range(0, 600, 5)
+  };
+  const TIMED = ["work", "rest", "prep", "emomEvery", "serRest"];
+  const show = (k, v) => TIMED.includes(k) ? fmt(v) : k === "emomReps" && v === 0 ? "libre" : String(v);
+  // Par mode : roues principales (maquette), puis réglages secondaires
+  const PICKERS = {
+    tabata: [[["rounds", "Rounds"], ["work", "Corde"], ["rest", "Repos"]], [["prep", "Préparation"]]],
+    emom: [[["emomRounds", "Minutes"], ["emomEvery", "Intervalle"]], [["emomReps", "Reps visées"], ["prep", "Préparation"]]],
+    series: [[["serSets", "Séries"], ["serReps", "Reps"], ["serRest", "Repos"]], [["serRounds", "Rounds"], ["prep", "Préparation"]]]
+  };
+  const ROW = 40;
+  const sheet = $("settings");
+  let draft = {}, wheels = [];
+
+  function makeWheel(key, name, rows) {
+    const vals = VALUES[key], el = document.createElement("div");
+    el.className = "wheel"; el.tabIndex = 0; el.style.setProperty("--rows", rows);
+    el.setAttribute("role", "spinbutton"); el.setAttribute("aria-label", name);
+    el.innerHTML = vals.map(v => `<div class="opt">${show(key, v)}</div>`).join("");
+    const opts = [...el.children];
+    let cur = -1, frame = 0;
+    const clamp = i => Math.max(0, Math.min(vals.length - 1, i));
+    function mark(i) {
+      if (i === cur) return;
+      cur = i;
+      opts.forEach((o, j) => { o.dataset.d = Math.min(3, Math.abs(j - i)); });
+      el.setAttribute("aria-valuenow", vals[i]); el.setAttribute("aria-valuetext", show(key, vals[i]));
+    }
+    function pick(i) {
+      i = clamp(i); mark(i);
+      if (draft[key] !== vals[i]) { draft[key] = vals[i]; paintSummary(); }
+    }
+    const goTo = i => el.scrollTo({ top: clamp(i) * ROW, behavior: reduceMotion() ? "auto" : "smooth" });
+    el.addEventListener("scroll", () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => pick(Math.round(el.scrollTop / ROW))); }, { passive: true });
+    el.addEventListener("click", e => { const o = e.target.closest(".opt"); if (o) goTo(opts.indexOf(o)); });
+    el.addEventListener("keydown", e => {
+      const d = { ArrowUp: -1, ArrowDown: 1, PageUp: -5, PageDown: 5 }[e.key];
+      if (d) { e.preventDefault(); goTo(cur + d); }
+      else if (e.key === "Home" || e.key === "End") { e.preventDefault(); goTo(e.key === "Home" ? 0 : vals.length - 1); }
+    });
+    return {
+      el,
+      sync() { // valeur hors grille : on prend la plus proche
+        let i = 0; vals.forEach((v, j) => { if (Math.abs(v - draft[key]) < Math.abs(vals[i] - draft[key])) i = j; });
+        el.scrollTop = i * ROW; mark(i); draft[key] = vals[i];
+      }
+    };
   }
-  modeBtns.forEach(b => b.addEventListener("click", () => { draft.mode = b.dataset.mode; paintDraft(); }));
-  // Steppers : un tap = un pas, maintien appuyé = défilement
-  steppers.forEach(s => {
-    const k = s.dataset.key, step = +s.dataset.step;
-    const bump = d => { draft[k] = Math.min(+s.dataset.max, Math.max(+s.dataset.min, draft[k] + step * d)); paintDraft(); };
-    let hold = 0, repeat = 0;
-    const stop = () => { clearTimeout(hold); clearInterval(repeat); hold = repeat = 0; };
-    s.addEventListener("pointerdown", e => {
-      const b = e.target.closest("button"); if (!b) return;
-      e.preventDefault(); stop();
-      const d = +b.dataset.d; bump(d);
-      hold = setTimeout(() => { repeat = setInterval(() => bump(d), 70); }, 420);
-    });
-    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => s.addEventListener(ev, stop));
-    s.addEventListener("click", e => { // clavier uniquement (Entrée / Espace) : detail vaut 0
-      const b = e.target.closest("button"); if (b && e.detail === 0) bump(+b.dataset.d);
-    });
-  });
-  $("openSettings").addEventListener("click", () => { if (running) pause(); draft = { ...cfg }; paintDraft(); dlg.showModal(); });
-  $("defaults").addEventListener("click", () => { draft = { ...DEFAULTS, mode: draft.mode }; paintDraft(); });
-  $("saveSettings").addEventListener("click", () => {
+
+  function fillPicker(box, list, rows) {
+    box.innerHTML = `<div class="cols">${list.map(([, n]) => `<span>${n}</span>`).join("")}</div><div class="wheels"></div>`;
+    const ws = list.map(([k, n]) => makeWheel(k, n, rows));
+    ws.forEach(w => box.lastChild.appendChild(w.el));
+    return ws;
+  }
+
+  function paintMode() {
+    const m = draft.mode;
+    $("pill").style.transform = `translateX(calc(${MODES.indexOf(m)} * (100% + 6px)))`;
+    $("modes").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+    $("hint").textContent = HINT[m];
+    wheels = [...fillPicker($("pickMain"), PICKERS[m][0], 5), ...fillPicker($("pickMore"), PICKERS[m][1], 3)];
+    wheels.forEach(w => w.sync());
+    paintSummary();
+  }
+
+  function paintSummary() {
+    const c = draft, ph = makePhases(c);
+    const total = ph.reduce((s, p) => s + p.dur, 0);
+    const nav = c.mode === "series" ? `${c.serRounds} × ${c.serSets} × ${c.serReps} reps` : specOf(c);
+    $("draftSpec").textContent = `${NAME[c.mode]} · ${nav}`;
+    const legend = [];
+    if (c.prep > 0) legend.push(["prep", `Préparation ${fmt(c.prep)}`]);
+    if (c.mode === "tabata") {
+      const rests = Math.max(0, c.rounds - 1) * (c.rest > 0 ? 1 : 0);
+      $("pvLabel").textContent = "Durée totale"; $("pvValue").textContent = fmt(total);
+      $("pvDetail").textContent = [plural(c.rounds, "round"), `${fmt(c.rounds * c.work)} d’effort`, rests ? `${fmt(rests * c.rest)} de repos` : "sans repos"].join(" · ");
+      legend.push(["work", `Corde ${c.rounds} × ${fmt(c.work)}`]);
+      if (rests) legend.push(["rest", `Repos ${rests} × ${fmt(c.rest)}`]);
+    } else if (c.mode === "emom") {
+      const unit = c.emomEvery === 60 ? "minute" : "intervalle";
+      $("pvLabel").textContent = "Durée totale"; $("pvValue").textContent = fmt(total);
+      $("pvDetail").textContent = `${plural(c.emomRounds, unit)} · ` + (c.emomReps > 0 ? `${c.emomReps} reps visées par ${unit}` : "reps libres");
+      legend.push(["work", `${unit === "minute" ? "Minutes" : "Intervalles"} ${c.emomRounds} × ${fmt(c.emomEvery)}`]);
+    } else {
+      const sets = c.serRounds * c.serSets;
+      $("pvLabel").textContent = "Volume total"; $("pvValue").textContent = `${sets * c.serReps} reps`;
+      $("pvDetail").textContent = `${plural(sets, "série")} · durée selon ton rythme`;
+      legend.push(["work", `Séries ${sets} × ${c.serReps} reps`]);
+      if (c.serRest > 0 && sets > 1) legend.push(["rest", `Repos ${fmt(c.serRest)}`]);
+    }
+    // Frise : chaque phase proportionnelle à sa durée (une série compte pour 40 s)
+    const fr = $("frieze");
+    fr.style.gap = ph.length > 150 ? "0" : ph.length > 60 ? "1px" : "";
+    fr.innerHTML = ph.map(p => `<i style="--w:${p.untimed ? 40 : p.dur};--c:var(--${p.type})"></i>`).join("");
+    $("legend").innerHTML = legend.map(([t, s]) => `<span style="--c:var(--${t})">${s}</span>`).join("");
+  }
+
+  $("modes").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { if (draft.mode !== b.dataset.mode) { draft.mode = b.dataset.mode; paintMode(); } }));
+  function openSettings() {
+    if (running) pause();
+    draft = { ...cfg };
+    sheet.inert = false; app.inert = true;
+    sheet.classList.add("open"); app.classList.add("behind");
+    paintMode();
+    $("back").focus({ preventScroll: true });
+  }
+  function closeSettings() {
+    sheet.classList.remove("open"); app.classList.remove("behind");
+    sheet.inert = true; app.inert = false;
+    $("openSettings").focus({ preventScroll: true });
+  }
+  $("openSettings").addEventListener("click", openSettings);
+  $("back").addEventListener("click", closeSettings);
+  $("save").addEventListener("click", () => {
     cfg = { ...draft };
     try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {}
-    dlg.close(); build(); reset();
+    closeSettings(); build(); reset();
   });
-  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
-  $("cancelSettings").addEventListener("click", () => dlg.close());
+  $("defaults").addEventListener("click", () => { draft = { ...DEFAULTS, mode: draft.mode }; paintMode(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && sheet.classList.contains("open")) closeSettings(); });
 
   build(); reset();
+
+  // Lancement : le lettrage apparaît puis laisse la place à la séance
+  const launch = $("launch");
+  const hideLaunch = () => { launch.classList.add("gone"); setTimeout(() => launch.remove(), 400); };
+  launch.addEventListener("pointerdown", hideLaunch, { once: true });
+  setTimeout(hideLaunch, 1150);
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));

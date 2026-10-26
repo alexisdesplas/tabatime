@@ -1,8 +1,9 @@
-const CACHE = "tabatime-v7";
+const CACHE = "tabatime-v8";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./fonts/inter-latin.woff2",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
