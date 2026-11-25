@@ -1,0 +1,12 @@
+
+# Notes et contexte de travail, gardés en local (jamais publiés)
+memoire.md
+CLAUDE.md
+CLAUDE.local.md
+PRODUCT.md
+livrables/
+.impeccable/
+.claude/
+.gstack/
+.worktreeinclude
+.DS_Store
